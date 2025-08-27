@@ -14,8 +14,24 @@ import {
 
 export const ThemeManager = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<Theme>(themes[0]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
+    try {
+      const storedThemeId = localStorage.getItem('asphaltos.themeId');
+      if (storedThemeId) {
+        const found = themes.find(t => t.id === storedThemeId);
+        if (found) return found;
+      }
+    } catch {}
+    return themes[0];
+  });
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('asphaltos.soundEnabled');
+      return raw === null ? true : raw === 'true';
+    } catch {
+      return true;
+    }
+  });
   const [customizations, setCustomizations] = useState({
     fontSize: 100,
     windowOpacity: 90,
@@ -23,9 +39,47 @@ export const ThemeManager = () => {
     particleDensity: 50
   });
 
+  // Load persisted customizations on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('asphaltos.customizations');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setCustomizations(prev => ({
+          fontSize: typeof parsed.fontSize === 'number' ? parsed.fontSize : prev.fontSize,
+          windowOpacity: typeof parsed.windowOpacity === 'number' ? parsed.windowOpacity : prev.windowOpacity,
+          animationSpeed: typeof parsed.animationSpeed === 'number' ? parsed.animationSpeed : prev.animationSpeed,
+          particleDensity: typeof parsed.particleDensity === 'number' ? parsed.particleDensity : prev.particleDensity,
+        }));
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     applyTheme(currentTheme);
+    try {
+      localStorage.setItem('asphaltos.themeId', currentTheme.id);
+    } catch {}
   }, [currentTheme]);
+
+  // Persist sound setting
+  useEffect(() => {
+    try {
+      localStorage.setItem('asphaltos.soundEnabled', String(soundEnabled));
+    } catch {}
+  }, [soundEnabled]);
+
+  // Apply and persist customization variables whenever they change
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.fontSize = `${customizations.fontSize}%`;
+    root.style.setProperty('--window-opacity', `${customizations.windowOpacity}%`);
+    root.style.setProperty('--animation-speed', `${customizations.animationSpeed}%`);
+    root.style.setProperty('--particle-density', `${customizations.particleDensity}%`);
+    try {
+      localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
+    } catch {}
+  }, [customizations]);
 
   const handleThemeChange = (theme: Theme) => {
     setCurrentTheme(theme);
@@ -39,22 +93,6 @@ export const ThemeManager = () => {
 
   const handleCustomization = (key: string, value: number) => {
     setCustomizations(prev => ({ ...prev, [key]: value }));
-    
-    const root = document.documentElement;
-    switch (key) {
-      case 'fontSize':
-        root.style.fontSize = `${value}%`;
-        break;
-      case 'windowOpacity':
-        root.style.setProperty('--window-opacity', `${value}%`);
-        break;
-      case 'animationSpeed':
-        root.style.setProperty('--animation-speed', `${value}%`);
-        break;
-      case 'particleDensity':
-        root.style.setProperty('--particle-density', `${value}%`);
-        break;
-    }
   };
 
   if (!isOpen) {
