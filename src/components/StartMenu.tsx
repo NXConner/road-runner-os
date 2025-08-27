@@ -14,18 +14,18 @@ import {
 
 interface StartMenuProps {
   onClose: () => void;
-  onOpenApp: (app: any) => void;
+  onOpenApp: (app: { id: string; name: string; icon: any; kind: 'file-explorer' | 'terminal' | 'settings' }) => void;
 }
 
 export const StartMenu = ({ onClose, onOpenApp }: StartMenuProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const apps = [
-    { id: 'explorer', name: 'File Explorer', icon: Folder, category: 'System' },
-    { id: 'terminal', name: 'Terminal', icon: Terminal, category: 'System' },
-    { id: 'settings', name: 'Settings', icon: Settings, category: 'System' },
-    { id: 'calculator', name: 'Calculator', icon: Calculator, category: 'Utilities' },
-    { id: 'calendar', name: 'Calendar', icon: Calendar, category: 'Productivity' },
+    { id: 'explorer', name: 'File Explorer', icon: Folder, category: 'System', kind: 'file-explorer' as const },
+    { id: 'terminal', name: 'Terminal', icon: Terminal, category: 'System', kind: 'terminal' as const },
+    { id: 'settings', name: 'Settings', icon: Settings, category: 'System', kind: 'settings' as const },
+    { id: 'calculator', name: 'Calculator', icon: Calculator, category: 'Utilities', kind: 'settings' as const },
+    { id: 'calendar', name: 'Calendar', icon: Calendar, category: 'Productivity', kind: 'settings' as const },
   ];
 
   const filteredApps = apps.filter(app =>
