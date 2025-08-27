@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Taskbar } from './Taskbar';
 import { WindowManager } from './WindowManager';
 import { DesktopIcons } from './DesktopIcons';
+import { WidgetManager, Widget } from './widgets/WidgetManager';
+import { ThemeManager } from './ThemeManager';
+import { EffectsManager } from './EffectsManager';
 import wallpaper from '@/assets/asphalt-wallpaper.jpg';
 
 export interface Window {
@@ -18,6 +21,7 @@ export interface Window {
 export const Desktop = () => {
   const [windows, setWindows] = useState<Window[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
+  const [widgets, setWidgets] = useState<Widget[]>([]);
 
   const openWindow = (windowData: Omit<Window, 'id' | 'zIndex'>) => {
     const newWindow: Window = {
@@ -46,6 +50,24 @@ export const Desktop = () => {
     setActiveWindow(id);
   };
 
+  const addWidget = (widgetData: Omit<Widget, 'id'>) => {
+    const newWidget: Widget = {
+      ...widgetData,
+      id: crypto.randomUUID(),
+    };
+    setWidgets(prev => [...prev, newWidget]);
+  };
+
+  const removeWidget = (id: string) => {
+    setWidgets(prev => prev.filter(w => w.id !== id));
+  };
+
+  const updateWidget = (id: string, updates: Partial<Widget>) => {
+    setWidgets(prev => prev.map(w => 
+      w.id === id ? { ...w, ...updates } : w
+    ));
+  };
+
   return (
     <div 
       className="h-screen w-screen overflow-hidden relative bg-gradient-asphalt"
@@ -56,8 +78,22 @@ export const Desktop = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* Effects Manager */}
+      <EffectsManager />
+      
+      {/* Theme Manager */}
+      <ThemeManager />
+      
       {/* Desktop Icons */}
       <DesktopIcons onOpenWindow={openWindow} />
+      
+      {/* Widget Manager */}
+      <WidgetManager
+        widgets={widgets}
+        onAddWidget={addWidget}
+        onRemoveWidget={removeWidget}
+        onUpdateWidget={updateWidget}
+      />
       
       {/* Windows */}
       <WindowManager
