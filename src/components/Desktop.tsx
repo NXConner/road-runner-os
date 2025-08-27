@@ -72,7 +72,8 @@ export const Desktop = () => {
     <div 
       className="h-screen w-screen overflow-hidden relative bg-gradient-asphalt"
       style={{
-        backgroundImage: `url(${wallpaper})`,
+        // Use theme-driven wallpaper if set, fallback to imported default
+        backgroundImage: `var(--wallpaper-image, url(${wallpaper}))`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
