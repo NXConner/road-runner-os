@@ -6,10 +6,7 @@ import {
   Terminal, 
   Folder, 
   Settings, 
-  Menu,
-  Minimize2,
-  Square,
-  X
+  Menu
 } from 'lucide-react';
 
 interface TaskbarProps {
@@ -28,24 +25,9 @@ export const Taskbar = ({ windows, activeWindow, onOpenWindow, onFocusWindow }: 
   });
 
   const apps = [
-    { 
-      id: 'explorer', 
-      name: 'File Explorer', 
-      icon: Folder,
-      component: <div className="p-6">File Explorer - Coming Soon</div>
-    },
-    { 
-      id: 'terminal', 
-      name: 'Terminal', 
-      icon: Terminal,
-      component: <div className="p-6 font-mono">AsphaltOS Terminal v1.0<br/>Type 'help' for commands</div>
-    },
-    { 
-      id: 'settings', 
-      name: 'Settings', 
-      icon: Settings,
-      component: <div className="p-6">System Settings - Coming Soon</div>
-    },
+    { id: 'explorer', name: 'File Explorer', icon: Folder, kind: 'file-explorer' as const },
+    { id: 'terminal', name: 'Terminal', icon: Terminal, kind: 'terminal' as const },
+    { id: 'settings', name: 'Settings', icon: Settings, kind: 'settings' as const },
   ];
 
   const handleAppClick = (app: typeof apps[0]) => {
@@ -55,7 +37,7 @@ export const Taskbar = ({ windows, activeWindow, onOpenWindow, onFocusWindow }: 
     } else {
       onOpenWindow({
         title: app.name,
-        component: app.component,
+        kind: app.kind,
         position: { x: 100, y: 100 },
         size: { width: 600, height: 400 },
         isMinimized: false,

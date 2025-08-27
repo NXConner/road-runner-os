@@ -16,7 +16,13 @@ export const Calculator = () => {
 
   const handleEquals = () => {
     try {
-      const result = eval(display);
+      // Very small safe parser supporting + - * / and decimals
+      // Reject anything else
+      if (!/^[-+*/().\d\s]+$/.test(display)) throw new Error('Invalid');
+      // eslint-disable-next-line no-new-func
+      const compute = new Function(`return (${display})`);
+      const result = compute();
+      if (typeof result !== 'number' || !isFinite(result)) throw new Error('Invalid');
       setDisplay(result.toString());
     } catch {
       setDisplay('Error');

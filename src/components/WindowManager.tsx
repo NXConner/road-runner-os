@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
 import { Minimize2, Square, X, Maximize2 } from 'lucide-react';
+import { createWindowComponent } from '@/lib/windowRegistry';
 
 interface WindowManagerProps {
   windows: Window[];
@@ -67,24 +68,39 @@ export const WindowManager = ({
       if (type === 'drag' && currentDragState) {
         const deltaX = e.clientX - currentDragState.startX;
         const deltaY = e.clientY - currentDragState.startY;
-        
+
+        const viewportWidth = globalThis.innerWidth || 1920;
+        const viewportHeight = (globalThis.innerHeight || 1080) - 64; // account for taskbar
+        const target = windows.find(w => w.id === currentDragState.windowId);
+        const width = target?.size.width ?? 600;
+        const height = target?.size.height ?? 400;
+
+        const nextX = Math.max(0, Math.min(viewportWidth - width, currentDragState.startWindowX + deltaX));
+        const nextY = Math.max(0, Math.min(viewportHeight - height, currentDragState.startWindowY + deltaY));
+
         onUpdate(currentDragState.windowId, {
-          position: {
-            x: Math.max(0, currentDragState.startWindowX + deltaX),
-            y: Math.max(0, currentDragState.startWindowY + deltaY),
-          }
+          position: { x: nextX, y: nextY }
         });
       }
       
       if (type === 'resize' && currentResizeState) {
         const deltaX = e.clientX - currentResizeState.startX;
         const deltaY = e.clientY - currentResizeState.startY;
-        
+
+        const viewportWidth = globalThis.innerWidth || 1920;
+        const viewportHeight = (globalThis.innerHeight || 1080) - 64;
+        const target = windows.find(w => w.id === currentResizeState.windowId);
+        const posX = target?.position.x ?? 0;
+        const posY = target?.position.y ?? 0;
+
+        const newWidth = Math.max(300, currentResizeState.startWidth + deltaX);
+        const newHeight = Math.max(200, currentResizeState.startHeight + deltaY);
+
+        const clampedWidth = Math.min(newWidth, viewportWidth - posX);
+        const clampedHeight = Math.min(newHeight, viewportHeight - posY);
+
         onUpdate(currentResizeState.windowId, {
-          size: {
-            width: Math.max(300, currentResizeState.startWidth + deltaX),
-            height: Math.max(200, currentResizeState.startHeight + deltaY),
-          }
+          size: { width: clampedWidth, height: clampedHeight }
         });
       }
     };
@@ -147,6 +163,10 @@ export const WindowManager = ({
             <div
               className="h-10 bg-surface-elevated/80 border-b border-border/20 flex items-center justify-between px-4 cursor-move select-none"
               onMouseDown={(e) => handleMouseDown(e, window.id, 'drag')}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                handleMaximize(window.id);
+              }}
             >
               <span className="text-sm font-medium truncate">{window.title}</span>
               
@@ -191,7 +211,7 @@ export const WindowManager = ({
 
             {/* Window Content */}
             <div className="flex-1 overflow-auto bg-card/50 p-0">
-              {window.component}
+              {createWindowComponent(window.kind, window.meta)}
             </div>
 
             {/* Resize Handle */}
