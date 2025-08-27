@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
+import { WebBrowser } from './WebBrowser';
 import { 
   Folder, 
   FileText, 
@@ -26,37 +27,8 @@ interface DesktopIconsProps {
 }
 
 export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
-  const createRepositoryComponent = (repoName: string, repoUrl: string, description: string) => (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <Github className="h-6 w-6" />
-        <h2 className="text-xl font-bold">{repoName}</h2>
-      </div>
-      <div className="space-y-4">
-        <p className="text-muted-foreground">{description}</p>
-        <div className="flex flex-col gap-3">
-          <a 
-            href={repoUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 p-3 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors"
-          >
-            <Github className="h-4 w-4" />
-            <span>View on GitHub</span>
-          </a>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-2 p-2 bg-card rounded">
-              <Code className="h-4 w-4" />
-              <span>Repository</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-card rounded">
-              <FileText className="h-4 w-4" />
-              <span>Open Source</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  const createRepositoryBrowser = (repoName: string) => (
+    <WebBrowser repoName={repoName} />
   );
 
   const repositories = [
@@ -152,20 +124,17 @@ export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
         x: 120 + (index % 8) * 100, 
         y: 20 + Math.floor(index / 8) * 100 
       },
-      component: createRepositoryComponent(
-        repo.name,
-        `https://github.com/NXConner/${repo.name}`,
-        repo.description
-      )
+      component: createRepositoryBrowser(repo.name)
     }))
   ];
 
   const handleDoubleClick = (item: typeof desktopItems[0]) => {
+    const isRepo = item.id.startsWith('repo-');
     onOpenWindow({
-      title: item.name,
+      title: isRepo ? `${item.name} - AsphaltOS Browser` : item.name,
       component: item.component,
-      position: { x: 150, y: 150 },
-      size: { width: 500, height: 400 },
+      position: { x: 100, y: 50 },
+      size: { width: isRepo ? 900 : 500, height: isRepo ? 600 : 400 },
       isMinimized: false,
       isMaximized: false,
     });
