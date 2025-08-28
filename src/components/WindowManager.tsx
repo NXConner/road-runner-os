@@ -117,6 +117,16 @@ export const WindowManager = ({
   };
 
   const handleMinimize = (windowId: string) => {
+    if (activeWindow === windowId) {
+      // Move focus to next topmost window before minimizing
+      const others = windows.filter(w => !w.isMinimized && w.id !== windowId).sort((a,b) => b.zIndex - a.zIndex);
+      if (others.length > 0) {
+        const next = others[0];
+        onUpdate(windowId, { isMinimized: true });
+        onFocus(next.id);
+        return;
+      }
+    }
     onUpdate(windowId, { isMinimized: true });
   };
 

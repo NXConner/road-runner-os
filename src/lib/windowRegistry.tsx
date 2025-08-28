@@ -1,5 +1,8 @@
 import React from 'react';
 import { WebBrowser } from '@/components/WebBrowser';
+import { FileExplorer } from '@/components/apps/FileExplorer';
+import { Terminal } from '@/components/apps/Terminal';
+import { SettingsApp } from '@/components/apps/SettingsApp';
 import { HardDrive, Folder, Image, Trash2 } from 'lucide-react';
 
 export type WindowKind =
@@ -28,31 +31,13 @@ export const createWindowComponent = (kind: WindowKind, meta?: WindowMeta): Reac
       return <WebBrowser initialUrl={initialUrl} />;
     }
     case 'file-explorer': {
-      return (
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">File Explorer</h2>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <HardDrive className="h-5 w-5" />
-              <span>Local Disk (C:)</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <Folder className="h-5 w-5" />
-              <span>Documents</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <Image className="h-5 w-5" />
-              <span>Pictures</span>
-            </div>
-          </div>
-        </div>
-      );
+      return <FileExplorer />;
     }
     case 'terminal': {
-      return <div className="p-6 font-mono">AsphaltOS Terminal v1.0<br/>Type 'help' for commands</div>;
+      return <Terminal />;
     }
     case 'settings': {
-      return <div className="p-6">System Settings - Coming Soon</div>;
+      return <SettingsApp />;
     }
     case 'panel:my-computer': {
       return (
