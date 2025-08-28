@@ -6,7 +6,7 @@ import { WidgetManager, Widget } from './widgets/WidgetManager';
 import { ThemeManager } from './ThemeManager';
 import { EffectsManager } from './EffectsManager';
 import wallpaper from '@/assets/asphalt-wallpaper.jpg';
-import { createWindowComponent, WindowKind, WindowMeta } from '@/lib/windowRegistry';
+import { WindowKind, WindowMeta } from '@/lib/windowRegistry';
 import { getWidgetTemplateByName } from '@/lib/widgetsRegistry';
 
 export interface Window {
@@ -65,11 +65,11 @@ export const Desktop = () => {
     setWidgets(prev => prev.filter(w => w.id !== id));
   };
 
-  const updateWidget = (id: string, updates: Partial<Widget>) => {
-    setWidgets(prev => prev.map(w => 
-      w.id === id ? { ...w, ...updates } : w
-    ));
-  };
+  // const updateWidget = (id: string, updates: Partial<Widget>) => {
+  //   setWidgets(prev => prev.map(w => 
+  //     w.id === id ? { ...w, ...updates } : w
+  //   ));
+  // };
 
   // Persist windows and widgets
   useEffect(() => {
@@ -171,7 +171,6 @@ export const Desktop = () => {
         widgets={widgets}
         onAddWidget={addWidget}
         onRemoveWidget={removeWidget}
-        onUpdateWidget={updateWidget}
       />
       
       {/* Windows */}

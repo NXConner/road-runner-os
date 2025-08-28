@@ -1,11 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
-import { WebBrowser } from './WebBrowser';
+//
 import { 
   Folder, 
-  FileText, 
-  Image, 
-  Music,
   Trash2,
   HardDrive,
   Github,
@@ -27,9 +24,7 @@ interface DesktopIconsProps {
 }
 
 export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
-  const createRepositoryBrowser = (repoName: string) => (
-    { kind: 'repo-browser' as const, meta: { repoName } }
-  );
+  //
 
   const repositories = [
     { name: 'FieldOpsSuite_v1', icon: Truck, description: 'Field Operations Management Suite' },
@@ -92,15 +87,13 @@ export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
     }))
   ];
 
-  const handleDoubleClick = (item: typeof desktopItems[0]) => {
+  const handleDoubleClick = (item: (typeof desktopItems)[number]) => {
     const isRepo = item.id.startsWith('repo-');
     // item.kind and item.meta prepared above
     onOpenWindow({
       title: isRepo ? `${item.name} - AsphaltOS Browser` : item.name,
-      // @ts-expect-error extend local item typing inline
       kind: item.kind,
-      // @ts-expect-error extend local item typing inline
-      meta: item.meta,
+      meta: 'meta' in item ? item.meta : undefined,
       position: { x: 100, y: 50 },
       size: { width: isRepo ? 900 : 500, height: isRepo ? 600 : 400 },
       isMinimized: false,

@@ -10,7 +10,7 @@ export const SecurityPanel = () => {
     accessAttempts: 3
   });
 
-  const [alerts, setAlerts] = useState([
+  const [alerts] = useState([
     { type: 'info', message: 'System scan completed', time: '2m ago' },
     { type: 'warning', message: 'Unauthorized access attempt blocked', time: '15m ago' }
   ]);

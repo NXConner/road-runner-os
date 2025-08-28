@@ -23,10 +23,9 @@ interface WidgetManagerProps {
   onAddWidget: (widget: Omit<Widget, 'id'>) => void;
   widgets: Widget[];
   onRemoveWidget: (id: string) => void;
-  onUpdateWidget: (id: string, updates: Partial<Widget>) => void;
 }
 
-export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget, onUpdateWidget }: WidgetManagerProps) => {
+export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget }: WidgetManagerProps) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   const availableWidgets = [

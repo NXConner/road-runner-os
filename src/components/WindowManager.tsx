@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
 import { Minimize2, Square, X, Maximize2 } from 'lucide-react';
@@ -19,7 +19,7 @@ export const WindowManager = ({
   onUpdate, 
   onFocus 
 }: WindowManagerProps) => {
-  const [dragState, setDragState] = useState<{
+  const [/* dragState */, setDragState] = useState<{
     windowId: string;
     startX: number;
     startY: number;
@@ -27,7 +27,7 @@ export const WindowManager = ({
     startWindowY: number;
   } | null>(null);
   
-  const [resizeState, setResizeState] = useState<{
+  const [/* resizeState */, setResizeState] = useState<{
     windowId: string;
     startX: number;
     startY: number;

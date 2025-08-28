@@ -3,7 +3,7 @@ import { WebBrowser } from '@/components/WebBrowser';
 import { FileExplorer } from '@/components/apps/FileExplorer';
 import { Terminal } from '@/components/apps/Terminal';
 import { SettingsApp } from '@/components/apps/SettingsApp';
-import { HardDrive, Folder, Image, Trash2 } from 'lucide-react';
+import { HardDrive, Folder, Image } from 'lucide-react';
 
 export type WindowKind =
   | 'file-explorer'

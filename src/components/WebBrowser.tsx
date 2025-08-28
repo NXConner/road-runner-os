@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -21,7 +21,7 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
   const [url, setUrl] = useState(defaultHome);
   const [currentUrl, setCurrentUrl] = useState(defaultHome);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [/* error */, setError] = useState<string | null>(null);
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'built' | 'error'>('idle');
   const historyRef = useRef<string[]>([defaultHome]);
   const historyIndexRef = useRef<number>(0);
@@ -45,7 +45,7 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
       const firstReachable = await (async () => {
         for (const candidate of deployedUrls) {
           try {
-            const res = await fetch(candidate, { method: 'HEAD', mode: 'no-cors' as RequestMode });
+            await fetch(candidate, { method: 'HEAD', mode: 'no-cors' as RequestMode });
             // In no-cors, we can't read status; assume success if no exception
             return candidate;
           } catch {}

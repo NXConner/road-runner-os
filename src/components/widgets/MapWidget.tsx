@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { MapPin, Navigation, ZoomIn, Target } from 'lucide-react';
+import { MapPin, ZoomIn, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const MapWidget = () => {
   const [mapMode, setMapMode] = useState<'satellite' | 'terrain' | 'road'>('road');
-  const [showTraffic, setShowTraffic] = useState(false);
+  const [/* showTraffic */, /* setShowTraffic */] = useState(false);
 
   const locations = [
     { name: 'HQ', lat: 40.7128, lng: -74.0060, type: 'office' },

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Folder, FileText, ArrowLeft, ArrowRight, Home } from 'lucide-react';
+import { Folder, FileText, ArrowLeft, Home } from 'lucide-react';
 
 type NodeType = 'folder' | 'file';
 

@@ -16,8 +16,8 @@ import {
 export const MediaPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(75);
-  const [progress, setProgress] = useState(35);
+  const [volume] = useState(75);
+  const [progress] = useState(35);
   const [currentTrack, setCurrentTrack] = useState({
     title: 'Highway Groove',
     artist: 'AsphaltOS Sounds',
