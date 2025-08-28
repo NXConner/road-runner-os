@@ -15,7 +15,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     this.state = { hasError: false };
   }
   static getDerivedStateFromError(){ return { hasError: true }; }
-  componentDidCatch(err: any){ console.error('App error boundary:', err); }
+  componentDidCatch(err: unknown){ console.error('App error boundary:', err); }
   render(){
     if (this.state.hasError) {
       return <div className="p-6">Something went wrong. Please reload the page.</div>;

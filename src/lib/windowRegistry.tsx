@@ -23,11 +23,11 @@ export type WindowMeta =
 export const createWindowComponent = (kind: WindowKind, meta?: WindowMeta): React.ReactNode => {
   switch (kind) {
     case 'repo-browser': {
-      const repoName = (meta as any)?.repoName as string | undefined;
+      const repoName = (meta && 'repoName' in meta) ? (meta as { repoName: string }).repoName : undefined;
       return <WebBrowser repoName={repoName} />;
     }
     case 'web-browser': {
-      const initialUrl = (meta as any)?.initialUrl as string | undefined;
+      const initialUrl = (meta && 'initialUrl' in meta) ? (meta as { initialUrl: string }).initialUrl : undefined;
       return <WebBrowser initialUrl={initialUrl} />;
     }
     case 'file-explorer': {

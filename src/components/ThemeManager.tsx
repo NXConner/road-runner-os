@@ -21,7 +21,9 @@ export const ThemeManager = () => {
         const found = themes.find(t => t.id === storedThemeId);
         if (found) return found;
       }
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
     return themes[0];
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -52,21 +54,27 @@ export const ThemeManager = () => {
           particleDensity: typeof parsed.particleDensity === 'number' ? parsed.particleDensity : prev.particleDensity,
         }));
       }
-    } catch {}
+    } catch {
+      // ignore parse errors
+    }
   }, []);
 
   useEffect(() => {
     applyTheme(currentTheme);
     try {
       localStorage.setItem('asphaltos.themeId', currentTheme.id);
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [currentTheme]);
 
   // Persist sound setting
   useEffect(() => {
     try {
       localStorage.setItem('asphaltos.soundEnabled', String(soundEnabled));
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [soundEnabled]);
 
   // Apply and persist customization variables whenever they change
@@ -78,7 +86,9 @@ export const ThemeManager = () => {
     root.style.setProperty('--particle-density', `${customizations.particleDensity}%`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [customizations]);
 
   const handleThemeChange = (theme: Theme) => {

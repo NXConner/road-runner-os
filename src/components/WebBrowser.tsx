@@ -48,7 +48,9 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
             await fetch(candidate, { method: 'HEAD', mode: 'no-cors' as RequestMode });
             // In no-cors, we can't read status; assume success if no exception
             return candidate;
-          } catch {}
+          } catch {
+            // ignore failed candidate
+          }
         }
         return null;
       })();

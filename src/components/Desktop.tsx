@@ -87,7 +87,9 @@ export const Desktop = () => {
       }));
       localStorage.setItem('asphaltos.windows', JSON.stringify(serializable));
       localStorage.setItem('asphaltos.activeWindowId', activeWindow || '');
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [windows, activeWindow]);
 
   useEffect(() => {
@@ -100,7 +102,9 @@ export const Desktop = () => {
         isVisible: w.isVisible,
       }));
       localStorage.setItem('asphaltos.widgets', JSON.stringify(serializable));
-    } catch {}
+    } catch {
+      // ignore storage errors
+    }
   }, [widgets]);
 
   // Load persisted state on mount
@@ -109,12 +113,22 @@ export const Desktop = () => {
       const rawWindows = localStorage.getItem('asphaltos.windows');
       const rawActive = localStorage.getItem('asphaltos.activeWindowId');
       if (rawWindows) {
-        const parsed: any[] = JSON.parse(rawWindows);
+        const parsed = JSON.parse(rawWindows) as Array<{
+          id: string;
+          title: string;
+          kind: WindowKind;
+          meta?: WindowMeta;
+          position: { x: number; y: number };
+          size: { width: number; height: number };
+          isMinimized: boolean;
+          isMaximized: boolean;
+          zIndex: number;
+        }>;
         const restored: Window[] = parsed.map(p => ({
           id: p.id,
           title: p.title,
-          kind: p.kind as WindowKind,
-          meta: p.meta as WindowMeta,
+          kind: p.kind,
+          meta: p.meta,
           position: p.position,
           size: p.size,
           isMinimized: !!p.isMinimized,
@@ -124,12 +138,16 @@ export const Desktop = () => {
         setWindows(restored);
       }
       if (rawActive) setActiveWindow(rawActive || null);
-    } catch {}
+    } catch {
+      // ignore parse errors
+    }
 
     try {
       const rawWidgets = localStorage.getItem('asphaltos.widgets');
       if (rawWidgets) {
-        const parsed: any[] = JSON.parse(rawWidgets);
+        const parsed = JSON.parse(rawWidgets) as Array<{
+          id: string; name: string; size: Widget['size']; position: Widget['position']; isVisible: boolean;
+        }>;
         const restored: Widget[] = parsed.map(p => {
           const tpl = getWidgetTemplateByName(p.name);
           return {
@@ -143,7 +161,9 @@ export const Desktop = () => {
         });
         setWidgets(restored);
       }
-    } catch {}
+    } catch {
+      // ignore parse errors
+    }
   }, []);
 
   return (

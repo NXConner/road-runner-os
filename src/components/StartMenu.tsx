@@ -12,15 +12,17 @@ import {
   User
 } from 'lucide-react';
 
+type StartMenuAppKind = 'file-explorer' | 'terminal' | 'settings';
+interface StartMenuApp { id: string; name: string; icon: React.ComponentType<{ className?: string }>; kind: StartMenuAppKind; category: string }
 interface StartMenuProps {
   onClose: () => void;
-  onOpenApp: (app: { id: string; name: string; icon: any; kind: 'file-explorer' | 'terminal' | 'settings' }) => void;
+  onOpenApp: (app: StartMenuApp) => void;
 }
 
 export const StartMenu = ({ onClose, onOpenApp }: StartMenuProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const apps = [
+  const apps: StartMenuApp[] = [
     { id: 'explorer', name: 'File Explorer', icon: Folder, category: 'System', kind: 'file-explorer' as const },
     { id: 'terminal', name: 'Terminal', icon: Terminal, category: 'System', kind: 'terminal' as const },
     { id: 'settings', name: 'Settings', icon: Settings, category: 'System', kind: 'settings' as const },
