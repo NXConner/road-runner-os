@@ -8,7 +8,7 @@ import { MapWidget } from './MapWidget';
 import { Calculator } from './Calculator';
 import { MediaPlayer } from './MediaPlayer';
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Pin, PinOff } from 'lucide-react';
 
 export interface Widget {
   id: string;
@@ -17,16 +17,25 @@ export interface Widget {
   size: 'small' | 'medium' | 'large';
   position: { x: number; y: number };
   isVisible: boolean;
+  isPinned?: boolean;
 }
 
 interface WidgetManagerProps {
   onAddWidget: (widget: Omit<Widget, 'id'>) => void;
   widgets: Widget[];
   onRemoveWidget: (id: string) => void;
+  onUpdateWidget: (id: string, updates: Partial<Widget>) => void;
 }
 
-export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget }: WidgetManagerProps) => {
+export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget, onUpdateWidget }: WidgetManagerProps) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [dragState, setDragState] = useState<{
+    id: string;
+    startX: number;
+    startY: number;
+    startLeft: number;
+    startTop: number;
+  } | null>(null);
 
   const availableWidgets = [
     {
@@ -135,18 +144,76 @@ export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget }: WidgetMa
             top: widget.position.y,
             display: widget.isVisible ? 'block' : 'none'
           }}
+          onMouseDown={(e) => {
+            if (widget.isPinned) return; // do not drag when pinned
+            if ((e.target as HTMLElement).closest('button')) return;
+            setDragState({
+              id: widget.id,
+              startX: e.clientX,
+              startY: e.clientY,
+              startLeft: widget.position.x,
+              startTop: widget.position.y,
+            });
+            const handleMove = (ev: MouseEvent) => {
+              setDragState((prev) => {
+                if (!prev) return prev;
+                const dx = ev.clientX - prev.startX;
+                const dy = ev.clientY - prev.startY;
+                const nextX = prev.startLeft + dx;
+                const nextY = prev.startTop + dy;
+                // Update DOM style optimistically
+                const el = document.querySelector(`[data-widget-id="${widget.id}"]`) as HTMLElement | null;
+                if (el) {
+                  el.style.left = `${nextX}px`;
+                  el.style.top = `${nextY}px`;
+                }
+                return { ...prev };
+              });
+            };
+            const handleUp = (ev: MouseEvent) => {
+              document.removeEventListener('mousemove', handleMove);
+              document.removeEventListener('mouseup', handleUp);
+              setDragState((prev) => {
+                if (!prev) return null;
+                const dx = ev.clientX - prev.startX;
+                const dy = ev.clientY - prev.startY;
+                const nextX = prev.startLeft + dx;
+                const nextY = prev.startTop + dy;
+                onUpdateWidget(widget.id, { position: { x: nextX, y: nextY } });
+                return null;
+              });
+            };
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleUp);
+          }}
+          data-widget-id={widget.id}
         >
           {/* Widget Header */}
           <div className="flex items-center justify-between p-2 border-b border-border/20">
-            <span className="text-sm font-medium">{widget.name}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRemoveWidget(widget.id)}
-              className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            <span className="text-sm font-medium flex items-center gap-2">
+              {widget.name}
+              {widget.isPinned && <Pin className="h-3 w-3 opacity-60" />}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onUpdateWidget(widget.id, { isPinned: !widget.isPinned })}
+                className={`h-6 w-6 p-0 ${widget.isPinned ? 'text-primary' : ''}`}
+                title={widget.isPinned ? 'Unpin' : 'Pin'}
+              >
+                {widget.isPinned ? <Pin className="h-3 w-3" /> : <PinOff className="h-3 w-3" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onRemoveWidget(widget.id)}
+                className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                title="Remove"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
           
           {/* Widget Content */}

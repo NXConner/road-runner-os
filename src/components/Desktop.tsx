@@ -65,11 +65,11 @@ export const Desktop = () => {
     setWidgets(prev => prev.filter(w => w.id !== id));
   };
 
-  // const updateWidget = (id: string, updates: Partial<Widget>) => {
-  //   setWidgets(prev => prev.map(w => 
-  //     w.id === id ? { ...w, ...updates } : w
-  //   ));
-  // };
+  const updateWidget = (id: string, updates: Partial<Widget>) => {
+    setWidgets(prev => prev.map(w => 
+      w.id === id ? { ...w, ...updates } : w
+    ));
+  };
 
   // Persist windows and widgets
   useEffect(() => {
@@ -100,6 +100,7 @@ export const Desktop = () => {
         size: w.size,
         position: w.position,
         isVisible: w.isVisible,
+        isPinned: !!w.isPinned,
       }));
       localStorage.setItem('asphaltos.widgets', JSON.stringify(serializable));
     } catch {
@@ -157,6 +158,7 @@ export const Desktop = () => {
             size: p.size,
             position: p.position,
             isVisible: !!p.isVisible,
+            isPinned: !!(p as any).isPinned,
           } as Widget;
         });
         setWidgets(restored);
@@ -191,6 +193,7 @@ export const Desktop = () => {
         widgets={widgets}
         onAddWidget={addWidget}
         onRemoveWidget={removeWidget}
+        onUpdateWidget={updateWidget}
       />
       
       {/* Windows */}

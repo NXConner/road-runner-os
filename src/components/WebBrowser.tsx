@@ -17,7 +17,23 @@ interface WebBrowserProps {
 }
 
 export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
-  const defaultHome = initialUrl || (repoName ? `https://github.com/NXConner/${repoName}` : 'https://github.com/NXConner');
+  const computeDefaultHome = (): string => {
+    if (initialUrl) return initialUrl;
+    if (repoName) {
+      try {
+        const customMapRaw = localStorage.getItem('asphaltos.repo.customUrls') || '{}';
+        const customMap = JSON.parse(customMapRaw) as Record<string, string>;
+        if (customMap && typeof customMap === 'object' && customMap[repoName]) {
+          return customMap[repoName];
+        }
+      } catch {
+        // ignore
+      }
+      return `https://github.com/NXConner/${repoName}`;
+    }
+    return 'https://github.com/NXConner';
+  };
+  const defaultHome = computeDefaultHome();
   const [url, setUrl] = useState(() => {
     if (repoName) {
       const last = localStorage.getItem(`asphaltos.browser.last.${repoName}`);
@@ -37,15 +53,32 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
     setBuildStatus('building');
     setIsLoading(true);
     setError(null);
-    // Do not probe random deployment URLs; default to GitHub or provided initialUrl
-    setTimeout(() => {
-      const target = initialUrl || `https://github.com/NXConner/${repoName}`;
+    try {
+      // Ask backend to bootstrap the repo
+      await fetch('/api/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo: repoName })
+      });
+      // Poll for running URL
+      const startedAt = Date.now();
+      let urlCandidate: string | null = null;
+      while (Date.now() - startedAt < 120000) {
+        const res = await fetch(`/api/status?repo=${encodeURIComponent(repoName)}`);
+        const data = await res.json();
+        if (data && data.url) { urlCandidate = data.url; break; }
+        await new Promise(r => setTimeout(r, 1500));
+      }
+      const target = urlCandidate || initialUrl || `https://github.com/NXConner/${repoName}`;
       setCurrentUrl(target);
       historyRef.current = [target];
       historyIndexRef.current = 0;
       setBuildStatus('built');
+    } catch (e) {
+      setBuildStatus('error');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const navigateTo = (newUrl: string, replace = false) => {
@@ -125,6 +158,7 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigateTo(defaultHome)}>
           <Home className="h-4 w-4" />
         </Button>
+        <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => window.open(currentUrl, '_blank')}>Open Externally</Button>
       </div>
 
       {/* Build Status */}
@@ -166,7 +200,13 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
               className="w-full h-full border-0"
               title={`${repoName} Application`}
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+              onError={() => setError('Blocked by site (X-Frame-Options/CSP)')}
             />
+            {false && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-destructive/10 text-destructive p-3 rounded">This site may block embedding. Use Open Externally.</div>
+              </div>
+            )}
           </div>
         )}
 
