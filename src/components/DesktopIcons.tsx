@@ -6,51 +6,61 @@ import {
   Trash2,
   HardDrive,
   Github,
-  Code,
-  Database,
-  Shield,
-  Truck,
-  Map,
-  Eye,
-  Bot,
-  Wrench,
-  Zap,
-  Cloud,
-  Navigation
+  Code
 } from 'lucide-react';
-import { getRepoDisplayName } from '@/lib/repoMap';
+import { getRepoDisplayName, listStaticRepos } from '@/lib/repoMap';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchGithubRepos, mapGithubToRepoConfigs } from '@/integrations/github';
+import { fetchLovableProjects, mapLovableToRepoConfigs } from '@/integrations/lovable';
 
 interface DesktopIconsProps {
   onOpenWindow: (windowData: Omit<Window, 'id' | 'zIndex'>) => void;
 }
 
 export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
-  //
+  const [dynamicRepos, setDynamicRepos] = useState<Array<{ name: string; icon: any }>>([]);
+  const [loadingRepos, setLoadingRepos] = useState<boolean>(true);
+  const lovableSlugs = useMemo(() => {
+    const raw = localStorage.getItem('asphaltos.lovable.projectSlugs') || '';
+    return raw.split(',').map(s => s.trim()).filter(Boolean);
+  }, []);
 
-  const repositories = [
-    { name: 'FieldOpsSuite_v1', icon: Truck, description: 'Field Operations Management Suite' },
-    { name: 'blacktop-blueprint-ai', icon: Bot, description: 'AI-powered Blacktop Design Assistant' },
-    { name: 'hero-ops-suite', icon: Shield, description: 'Hero Operations Management System' },
-    { name: 'division-android-reborn-os', icon: Code, description: 'Android Reborn Operating System' },
-    { name: 'fleet-focus-manager', icon: Truck, description: 'Fleet Management and Focus System' },
-    { name: 'asphalt-atlas-hub', icon: Map, description: 'Asphalt Atlas Management Hub' },
-    { name: 'echo-comm-protocol', icon: Zap, description: 'Echo Communication Protocol System' },
-    { name: 'pavemaster-suite', icon: Wrench, description: 'Professional Paving Management Suite' },
-    { name: 'patrick-county-mapper', icon: Map, description: 'Patrick County Mapping Application' },
-    { name: 'NXConner', icon: Github, description: 'NXConner Profile Repository' },
-    { name: 'size-seeker-tracker-app', icon: Eye, description: 'Size Seeker Tracking Application' },
-    { name: 'OverWatch-Ops-System-app', icon: Eye, description: 'OverWatch Operations System' },
-    { name: 'OverWatch-app', icon: Eye, description: 'OverWatch Monitoring Application' },
-    { name: 'asphalt-guardian-suite', icon: Shield, description: 'Asphalt Guardian Security Suite' },
-    { name: 'Blacktop', icon: Code, description: 'Blacktop Core System' },
-    { name: 'pave-ai-estimator', icon: Bot, description: 'AI-Powered Paving Estimator' },
-    { name: 'echo-comm-rogue', icon: Zap, description: 'Echo Communication Rogue System' },
-    { name: 'gemini-create-magic', icon: Bot, description: 'Gemini Create Magic Assistant' },
-    { name: 'asphalt-odoo-prime', icon: Database, description: 'Asphalt Odoo Prime Integration' },
-    { name: 'NeXTeCH-Systems-Asphalt-NeXus', icon: Navigation, description: 'NeXTeCH Systems Asphalt NeXus' },
-    { name: 'pave-wise-weather-cast', icon: Cloud, description: 'Pave Wise Weather Forecasting' },
-    { name: 'fleet-asphalt-nexus', icon: Truck, description: 'Fleet Asphalt Nexus Management' }
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoadingRepos(true);
+      try {
+        const token = localStorage.getItem('asphaltos.github.token') || undefined;
+        const gh = await fetchGithubRepos('NXConner', token).catch(() => []);
+        const ghConfigs = mapGithubToRepoConfigs(gh);
+        const lv = await fetchLovableProjects('nxconner').catch(() => []);
+        const lvConfigs = mapLovableToRepoConfigs(lv);
+        const combined = [...listStaticRepos(), ...ghConfigs, ...lvConfigs];
+        const uniqueNames = Array.from(new Set(combined.map(c => c.repo)));
+        const iconBySource: Record<string, any> = { github: Github };
+        const fallbackIcon = Code;
+        const mapped = uniqueNames.map(name => {
+          const found = combined.find(c => c.repo === name);
+          const icon = found?.source ? (iconBySource[found.source] || fallbackIcon) : fallbackIcon;
+          return { name, icon };
+        });
+        if (!cancelled) setDynamicRepos(mapped);
+      } finally {
+        if (!cancelled) setLoadingRepos(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const repositories = useMemo(() => {
+    if (loadingRepos && dynamicRepos.length === 0) {
+      return [
+        { name: 'NXConner', icon: Github, description: 'NXConner Profile Repository' },
+      ];
+    }
+    return dynamicRepos.map(r => ({ name: r.name, icon: r.icon, description: '' }));
+  }, [dynamicRepos, loadingRepos]);
 
   const desktopItems = [
     {
@@ -74,6 +84,32 @@ export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
       position: { x: 20, y: 220 },
       kind: 'panel:recycle-bin' as const,
     },
+    // Profiles
+    {
+      id: 'profile-github',
+      name: 'GitHub - NXConner',
+      icon: Github,
+      position: { x: 20, y: 320 },
+      kind: 'web-browser' as const,
+      meta: { initialUrl: 'https://github.com/NXConner' },
+    },
+    {
+      id: 'profile-lovable',
+      name: 'Lovable - @nxconner',
+      icon: Code,
+      position: { x: 20, y: 420 },
+      kind: 'web-browser' as const,
+      meta: { initialUrl: 'https://lovable.dev/@nxconner' },
+    },
+    // Lovable projects from localStorage slugs
+    ...lovableSlugs.map((slug, idx) => ({
+      id: `lovable-${slug}`,
+      name: slug,
+      icon: Code,
+      position: { x: 20, y: 520 + idx * 100 },
+      kind: 'web-browser' as const,
+      meta: { initialUrl: `https://${slug}.lovable.app` },
+    })),
     // Add repository icons
     ...repositories.map((repo, index) => ({
       id: `repo-${repo.name}`,

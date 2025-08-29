@@ -84,6 +84,11 @@ npm run build
 - Repo display names and custom URLs: edit `src/lib/repoMap.ts`
 - Themes: edit `src/lib/themes.ts`
 
+### External Integrations
+
+- GitHub: Optionally set a token in localStorage key `asphaltos.github.token` (for private repos visibility). The desktop will render clickable icons for `github.com/NXConner` repositories and open them in the built-in browser that probes common deploy URLs and falls back to GitHub.
+- Lovable: The app heuristically links to `lovable.dev/@nxconner` and `*.lovable.app` if discoverable. No token is required for public projects; private listings are not fetched.
+
 ## CI
 
 GitHub Actions workflow runs typecheck, lint, and build on PRs and main.

@@ -17,7 +17,7 @@ interface WebBrowserProps {
 }
 
 export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
-  const defaultHome = initialUrl || 'https://github.com/NXConner';
+  const defaultHome = initialUrl || (repoName ? `https://github.com/NXConner/${repoName}` : 'https://github.com/NXConner');
   const [url, setUrl] = useState(() => {
     if (repoName) {
       const last = localStorage.getItem(`asphaltos.browser.last.${repoName}`);
@@ -45,7 +45,7 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
         `https://${repoName}.vercel.app`,
         `https://${repoName}.netlify.app`,
         `https://nxconner.github.io/${repoName}`,
-        `https://${repoName.toLowerCase()}.lovable.app`
+        `https://${repoName.toLowerCase()}.lovable.app`,
       ];
 
       const firstReachable = await (async () => {
