@@ -15,8 +15,21 @@ export const getRepoDisplayName = (name: string): string => {
   return cfg?.displayName || name;
 };
 
+const getUserCustomUrlMap = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem('asphaltos.repo.customUrls') || '{}';
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
 export const getRepoCustomUrl = (name: string): string | undefined => {
-  return repoConfigs.find(c => c.repo === name)?.url;
+  const fromStatic = repoConfigs.find(c => c.repo === name)?.url;
+  if (fromStatic) return fromStatic;
+  const map = getUserCustomUrlMap();
+  return map[name];
 };
 
 export const listStaticRepos = (): RepoConfig[] => repoConfigs.slice();
