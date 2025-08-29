@@ -16,15 +16,16 @@ export type WindowKind =
   | 'panel:recycle-bin';
 
 export type WindowMeta =
-  | { repoName: string }
+  | { repoName: string; initialUrl?: string }
   | { initialUrl: string }
   | Record<string, never>;
 
 export const createWindowComponent = (kind: WindowKind, meta?: WindowMeta): React.ReactNode => {
   switch (kind) {
     case 'repo-browser': {
-      const repoName = (meta && 'repoName' in meta) ? (meta as { repoName: string }).repoName : undefined;
-      return <WebBrowser repoName={repoName} />;
+      const repoName = (meta && 'repoName' in meta) ? (meta as { repoName: string; initialUrl?: string }).repoName : undefined;
+      const initialUrl = (meta && 'initialUrl' in meta) ? (meta as { initialUrl?: string }).initialUrl : undefined;
+      return <WebBrowser repoName={repoName} initialUrl={initialUrl} />;
     }
     case 'web-browser': {
       const initialUrl = (meta && 'initialUrl' in meta) ? (meta as { initialUrl: string }).initialUrl : undefined;
