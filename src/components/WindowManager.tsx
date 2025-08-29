@@ -189,6 +189,7 @@ export const WindowManager = ({
                     handleMinimize(window.id);
                   }}
                   className="h-6 w-6 p-0 hover:bg-muted"
+                  aria-label="Minimize window"
                 >
                   <Minimize2 className="h-3 w-3" />
                 </Button>
@@ -201,6 +202,7 @@ export const WindowManager = ({
                     handleMaximize(window.id);
                   }}
                   className="h-6 w-6 p-0 hover:bg-muted"
+                  aria-label={window.isMaximized ? 'Restore window' : 'Maximize window'}
                 >
                   {window.isMaximized ? <Maximize2 className="h-3 w-3" /> : <Square className="h-3 w-3" />}
                 </Button>
@@ -213,6 +215,7 @@ export const WindowManager = ({
                     onClose(window.id);
                   }}
                   className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                  aria-label="Close window"
                 >
                   <X className="h-3 w-3" />
                 </Button>

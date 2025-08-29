@@ -52,7 +52,8 @@ export const Taskbar = ({ windows, activeWindow, onOpenWindow, onFocusWindow }: 
       {showStartMenu && (
         <StartMenu 
           onClose={() => setShowStartMenu(false)}
-          onOpenApp={(app) => {
+          onOpenApp={(_app) => {
+            const app = apps.find(a => a.id === _app.id) || apps[0];
             handleAppClick(app);
             setShowStartMenu(false);
           }}

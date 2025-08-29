@@ -18,8 +18,14 @@ interface WebBrowserProps {
 
 export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
   const defaultHome = initialUrl || 'https://github.com/NXConner';
-  const [url, setUrl] = useState(defaultHome);
-  const [currentUrl, setCurrentUrl] = useState(defaultHome);
+  const [url, setUrl] = useState(() => {
+    if (repoName) {
+      const last = localStorage.getItem(`asphaltos.browser.last.${repoName}`);
+      return last || defaultHome;
+    }
+    return defaultHome;
+  });
+  const [currentUrl, setCurrentUrl] = useState(url);
   const [isLoading, setIsLoading] = useState(false);
   const [/* error */, setError] = useState<string | null>(null);
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'built' | 'error'>('idle');
@@ -50,6 +56,7 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
             return candidate;
           } catch {
             // ignore failed candidate
+            continue;
           }
         }
         return null;
@@ -74,6 +81,13 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
     } else {
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1).concat(newUrl);
       historyIndexRef.current++;
+    }
+    if (repoName) {
+      try {
+        localStorage.setItem(`asphaltos.browser.last.${repoName}`, newUrl);
+      } catch {
+        // ignore storage errors
+      }
     }
     setTimeout(() => setIsLoading(false), 800);
   };

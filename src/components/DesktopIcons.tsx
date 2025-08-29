@@ -18,6 +18,7 @@ import {
   Cloud,
   Navigation
 } from 'lucide-react';
+import { getRepoDisplayName } from '@/lib/repoMap';
 
 interface DesktopIconsProps {
   onOpenWindow: (windowData: Omit<Window, 'id' | 'zIndex'>) => void;
@@ -76,7 +77,7 @@ export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
     // Add repository icons
     ...repositories.map((repo, index) => ({
       id: `repo-${repo.name}`,
-      name: repo.name,
+      name: getRepoDisplayName(repo.name),
       icon: repo.icon,
       position: { 
         x: 120 + (index % 8) * 100, 
