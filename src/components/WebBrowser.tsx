@@ -34,42 +34,18 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
 
   const handleBuildApp = async () => {
     if (!repoName) return;
-    
     setBuildStatus('building');
     setIsLoading(true);
     setError(null);
-    
-    // Simulate build + probe deployed URLs
-    setTimeout(async () => {
-      const deployedUrls = [
-        `https://${repoName}.vercel.app`,
-        `https://${repoName}.netlify.app`,
-        `https://nxconner.github.io/${repoName}`,
-        `https://${repoName.toLowerCase()}.lovable.app`,
-      ];
-
-      const firstReachable = await (async () => {
-        for (const candidate of deployedUrls) {
-          try {
-            await fetch(candidate, { method: 'HEAD', mode: 'no-cors' as RequestMode });
-            // In no-cors, we can't read status; assume success if no exception
-            return candidate;
-          } catch {
-            // ignore failed candidate
-            continue;
-          }
-        }
-        return null;
-      })();
-
-      const repoUrl = `https://github.com/NXConner/${repoName}`;
-      const target = firstReachable || repoUrl;
+    // Do not probe random deployment URLs; default to GitHub or provided initialUrl
+    setTimeout(() => {
+      const target = initialUrl || `https://github.com/NXConner/${repoName}`;
       setCurrentUrl(target);
       historyRef.current = [target];
       historyIndexRef.current = 0;
       setBuildStatus('built');
       setIsLoading(false);
-    }, 1500);
+    }, 800);
   };
 
   const navigateTo = (newUrl: string, replace = false) => {
