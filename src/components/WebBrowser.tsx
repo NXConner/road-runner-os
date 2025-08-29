@@ -53,15 +53,32 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
     setBuildStatus('building');
     setIsLoading(true);
     setError(null);
-    // Do not probe random deployment URLs; default to GitHub or provided initialUrl
-    setTimeout(() => {
-      const target = initialUrl || `https://github.com/NXConner/${repoName}`;
+    try {
+      // Ask backend to bootstrap the repo
+      await fetch('/api/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo: repoName })
+      });
+      // Poll for running URL
+      const startedAt = Date.now();
+      let urlCandidate: string | null = null;
+      while (Date.now() - startedAt < 120000) {
+        const res = await fetch(`/api/status?repo=${encodeURIComponent(repoName)}`);
+        const data = await res.json();
+        if (data && data.url) { urlCandidate = data.url; break; }
+        await new Promise(r => setTimeout(r, 1500));
+      }
+      const target = urlCandidate || initialUrl || `https://github.com/NXConner/${repoName}`;
       setCurrentUrl(target);
       historyRef.current = [target];
       historyIndexRef.current = 0;
       setBuildStatus('built');
+    } catch (e) {
+      setBuildStatus('error');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const navigateTo = (newUrl: string, replace = false) => {
