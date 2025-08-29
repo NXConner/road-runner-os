@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -17,11 +17,20 @@ interface WebBrowserProps {
 }
 
 export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
-  const [url, setUrl] = useState(initialUrl || 'https://github.com/NXConner');
+  const defaultHome = initialUrl || 'https://github.com/NXConner';
+  const [url, setUrl] = useState(() => {
+    if (repoName) {
+      const last = localStorage.getItem(`asphaltos.browser.last.${repoName}`);
+      return last || defaultHome;
+    }
+    return defaultHome;
+  });
   const [currentUrl, setCurrentUrl] = useState(url);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [/* error */, setError] = useState<string | null>(null);
   const [buildStatus, setBuildStatus] = useState<'idle' | 'building' | 'built' | 'error'>('idle');
+  const historyRef = useRef<string[]>([defaultHome]);
+  const historyIndexRef = useRef<number>(0);
 
   const handleBuildApp = async () => {
     if (!repoName) return;
@@ -30,29 +39,78 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
     setIsLoading(true);
     setError(null);
     
-    // Simulate build process
-    setTimeout(() => {
-      // Try to load a potential deployment URL
+    // Simulate build + probe deployed URLs
+    setTimeout(async () => {
       const deployedUrls = [
         `https://${repoName}.vercel.app`,
         `https://${repoName}.netlify.app`,
         `https://nxconner.github.io/${repoName}`,
         `https://${repoName.toLowerCase()}.lovable.app`
       ];
-      
-      // For demo purposes, we'll show the GitHub repo
+
+      const firstReachable = await (async () => {
+        for (const candidate of deployedUrls) {
+          try {
+            await fetch(candidate, { method: 'HEAD', mode: 'no-cors' as RequestMode });
+            // In no-cors, we can't read status; assume success if no exception
+            return candidate;
+          } catch {
+            // ignore failed candidate
+            continue;
+          }
+        }
+        return null;
+      })();
+
       const repoUrl = `https://github.com/NXConner/${repoName}`;
-      setCurrentUrl(repoUrl);
+      const target = firstReachable || repoUrl;
+      setCurrentUrl(target);
+      historyRef.current = [target];
+      historyIndexRef.current = 0;
       setBuildStatus('built');
       setIsLoading(false);
-    }, 3000);
+    }, 1500);
   };
 
-  const handleNavigation = (newUrl: string) => {
+  const navigateTo = (newUrl: string, replace = false) => {
     setUrl(newUrl);
     setCurrentUrl(newUrl);
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    if (replace) {
+      historyRef.current[historyIndexRef.current] = newUrl;
+    } else {
+      historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1).concat(newUrl);
+      historyIndexRef.current++;
+    }
+    if (repoName) {
+      try {
+        localStorage.setItem(`asphaltos.browser.last.${repoName}`, newUrl);
+      } catch {
+        // ignore storage errors
+      }
+    }
+    setTimeout(() => setIsLoading(false), 800);
+  };
+
+  const canGoBack = historyIndexRef.current > 0;
+  const canGoForward = historyIndexRef.current < historyRef.current.length - 1;
+
+  const goBack = () => {
+    if (!canGoBack) return;
+    historyIndexRef.current--;
+    const target = historyRef.current[historyIndexRef.current];
+    navigateTo(target, true);
+  };
+
+  const goForward = () => {
+    if (!canGoForward) return;
+    historyIndexRef.current++;
+    const target = historyRef.current[historyIndexRef.current];
+    navigateTo(target, true);
+  };
+
+  const reload = () => {
+    navigateTo(currentUrl, true);
   };
 
   useEffect(() => {
@@ -66,13 +124,13 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
       {/* Browser Controls */}
       <div className="flex items-center gap-2 p-2 bg-surface-elevated border-b border-border/20">
         <div className="flex gap-1">
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={goBack} disabled={!canGoBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={goForward} disabled={!canGoForward}>
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={reload}>
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
@@ -82,13 +140,13 @@ export const WebBrowser = ({ initialUrl, repoName }: WebBrowserProps) => {
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleNavigation(url)}
+            onKeyDown={(e) => e.key === 'Enter' && navigateTo(url)}
             className="h-8 text-sm"
             placeholder="Enter URL..."
           />
         </div>
         
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => navigateTo(defaultHome)}>
           <Home className="h-4 w-4" />
         </Button>
       </div>

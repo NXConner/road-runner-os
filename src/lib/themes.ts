@@ -30,6 +30,13 @@ export interface Theme {
   };
 }
 
+// Import wallpapers so Vite resolves correct asset URLs
+import asphaltWallpaper from '@/assets/asphalt-wallpaper.jpg';
+import heroOpsWallpaper from '@/assets/hero-ops-wallpaper.jpg';
+import nextechWallpaper from '@/assets/nextech-wallpaper.jpg';
+import securityWallpaper from '@/assets/security-wallpaper.jpg';
+import fleetWallpaper from '@/assets/fleet-wallpaper.jpg';
+
 export const themes: Theme[] = [
   {
     id: 'asphalt-classic',
@@ -50,7 +57,7 @@ export const themes: Theme[] = [
       background: 'linear-gradient(135deg, hsl(0, 0%, 8%), hsl(220, 13%, 9%))'
     },
     effects: { glow: true, glass: true, neon: false, particles: false },
-    wallpaper: '/assets/asphalt-wallpaper.jpg',
+    wallpaper: asphaltWallpaper,
     sounds: { click: 'asphalt-click.mp3', notification: 'road-beep.mp3', startup: 'engine-start.mp3' }
   },
   {
@@ -72,7 +79,7 @@ export const themes: Theme[] = [
       background: 'radial-gradient(circle, hsl(220, 20%, 8%), hsl(220, 20%, 3%))'
     },
     effects: { glow: true, glass: false, neon: true, particles: true },
-    wallpaper: '/assets/hero-ops-wallpaper.jpg',
+    wallpaper: heroOpsWallpaper,
     sounds: { click: 'tactical-click.mp3', notification: 'alert.mp3', startup: 'system-online.mp3' }
   },
   {
@@ -94,7 +101,7 @@ export const themes: Theme[] = [
       background: 'linear-gradient(180deg, hsl(240, 30%, 4%), hsl(260, 40%, 2%))'
     },
     effects: { glow: true, glass: true, neon: true, particles: true },
-    wallpaper: '/assets/nextech-wallpaper.jpg',
+    wallpaper: nextechWallpaper,
     sounds: { click: 'synth-click.mp3', notification: 'digital-chime.mp3', startup: 'boot-sequence.mp3' }
   },
   {
@@ -116,7 +123,7 @@ export const themes: Theme[] = [
       background: 'radial-gradient(ellipse, hsl(120, 20%, 5%), hsl(0, 0%, 2%))'
     },
     effects: { glow: false, glass: true, neon: false, particles: false },
-    wallpaper: '/assets/security-wallpaper.jpg',
+    wallpaper: securityWallpaper,
     sounds: { click: 'secure-click.mp3', notification: 'security-alert.mp3', startup: 'system-armed.mp3' }
   },
   {
@@ -138,7 +145,7 @@ export const themes: Theme[] = [
       background: 'linear-gradient(135deg, hsl(210, 30%, 10%), hsl(230, 25%, 6%))'
     },
     effects: { glow: true, glass: true, neon: false, particles: false },
-    wallpaper: '/assets/fleet-wallpaper.jpg',
+    wallpaper: fleetWallpaper,
     sounds: { click: 'command-click.mp3', notification: 'fleet-alert.mp3', startup: 'command-online.mp3' }
   }
 ];
@@ -163,11 +170,15 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty('--gradient-primary', theme.gradients.primary);
   root.style.setProperty('--gradient-secondary', theme.gradients.secondary);
   root.style.setProperty('--gradient-background', theme.gradients.background);
+  // Apply wallpaper
+  root.style.setProperty('--wallpaper-image', `url(${theme.wallpaper})`);
   
   // Apply effects classes
-  document.body.className = document.body.className.replace(/theme-\w+/g, '');
+  document.body.className = document.body.className
+    .replace(/theme-\w+/g, '')
+    .replace(/\beffects-(glow|glass|neon|particles)\b/g, '')
+    .trim();
   document.body.classList.add(`theme-${theme.id}`);
-  
   if (theme.effects.glow) document.body.classList.add('effects-glow');
   if (theme.effects.glass) document.body.classList.add('effects-glass');
   if (theme.effects.neon) document.body.classList.add('effects-neon');

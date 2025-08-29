@@ -1,11 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
-import { WebBrowser } from './WebBrowser';
+//
 import { 
   Folder, 
-  FileText, 
-  Image, 
-  Music,
   Trash2,
   HardDrive,
   Github,
@@ -21,15 +18,14 @@ import {
   Cloud,
   Navigation
 } from 'lucide-react';
+import { getRepoDisplayName } from '@/lib/repoMap';
 
 interface DesktopIconsProps {
   onOpenWindow: (windowData: Omit<Window, 'id' | 'zIndex'>) => void;
 }
 
 export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
-  const createRepositoryBrowser = (repoName: string) => (
-    <WebBrowser repoName={repoName} />
-  );
+  //
 
   const repositories = [
     { name: 'FieldOpsSuite_v1', icon: Truck, description: 'Field Operations Management Suite' },
@@ -62,77 +58,43 @@ export const DesktopIcons = ({ onOpenWindow }: DesktopIconsProps) => {
       name: 'My Computer',
       icon: HardDrive,
       position: { x: 20, y: 20 },
-      component: (
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">My Computer</h2>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <HardDrive className="h-5 w-5" />
-              <span>Local Disk (C:)</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <Folder className="h-5 w-5" />
-              <span>Documents</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <Image className="h-5 w-5" />
-              <span>Pictures</span>
-            </div>
-          </div>
-        </div>
-      )
+      kind: 'panel:my-computer' as const,
     },
     {
       id: 'documents',
       name: 'Documents',
       icon: Folder,
       position: { x: 20, y: 120 },
-      component: (
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">Documents</h2>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <FileText className="h-5 w-5" />
-              <span>README.txt</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-surface-elevated rounded">
-              <FileText className="h-5 w-5" />
-              <span>AsphaltOS Manual.pdf</span>
-            </div>
-          </div>
-        </div>
-      )
+      kind: 'panel:documents' as const,
     },
     {
       id: 'recycle-bin',
       name: 'Recycle Bin',
       icon: Trash2,
       position: { x: 20, y: 220 },
-      component: (
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">Recycle Bin</h2>
-          <p className="text-muted-foreground">The recycle bin is empty.</p>
-        </div>
-      )
+      kind: 'panel:recycle-bin' as const,
     },
     // Add repository icons
     ...repositories.map((repo, index) => ({
       id: `repo-${repo.name}`,
-      name: repo.name,
+      name: getRepoDisplayName(repo.name),
       icon: repo.icon,
       position: { 
         x: 120 + (index % 8) * 100, 
         y: 20 + Math.floor(index / 8) * 100 
       },
-      component: createRepositoryBrowser(repo.name)
+      kind: 'repo-browser' as const,
+      meta: { repoName: repo.name }
     }))
   ];
 
-  const handleDoubleClick = (item: typeof desktopItems[0]) => {
+  const handleDoubleClick = (item: (typeof desktopItems)[number]) => {
     const isRepo = item.id.startsWith('repo-');
+    // item.kind and item.meta prepared above
     onOpenWindow({
       title: isRepo ? `${item.name} - AsphaltOS Browser` : item.name,
-      component: item.component,
+      kind: item.kind,
+      meta: 'meta' in item ? item.meta : undefined,
       position: { x: 100, y: 50 },
       size: { width: isRepo ? 900 : 500, height: isRepo ? 600 : 400 },
       isMinimized: false,

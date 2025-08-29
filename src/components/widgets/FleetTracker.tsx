@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Truck, MapPin, Gauge, Clock } from 'lucide-react';
+import { Truck, MapPin, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 export const FleetTracker = () => {

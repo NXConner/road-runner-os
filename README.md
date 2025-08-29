@@ -60,6 +60,34 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Features
+
+- Road-Runner AsphaltOS desktop UI (windows, taskbar, start menu)
+- Theme Manager with persistent wallpapers and effects
+- Built-in apps: File Explorer, Settings, Terminal
+- Widgets: System Monitor, Weather, AI Assistant, Fleet Tracker, Security Panel, Map, Calculator, Media Player
+- Repo icons open a built-in browser; probes common deploy URLs and falls back to GitHub
+- Persistent layout: windows, widgets, theme, and browser last-visited URL per repo
+
+## Development
+
+```sh
+npm ci
+npm run dev
+npm run typecheck
+npm run lint
+npm run build
+```
+
+## Configuration
+
+- Repo display names and custom URLs: edit `src/lib/repoMap.ts`
+- Themes: edit `src/lib/themes.ts`
+
+## CI
+
+GitHub Actions workflow runs typecheck, lint, and build on PRs and main.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/7fc7ef8e-72e6-4e52-ba99-1b23b9218649) and click on Share -> Publish.
