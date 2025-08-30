@@ -79,6 +79,11 @@
     --noise-opacity: 0; /* 0..1 applied to noise canvas */
     --window-parallax-scale: 0; /* 0..0.5 multiplier */
     --card-grain-opacity: 0; /* 0..1 */
+    --bloom-strength: 0; /* 0..1 */
+    --vignette-intensity: 0; /* 0..1 */
+    --crt-scanline-opacity: 0; /* 0..1 */
+    --crt-scanline-size: 2px; /* line thickness */
+    --crt-scanline-gap: 3px; /* space between lines */
   }
 }
 
@@ -146,7 +151,7 @@
 
   /* Theme Effects */
   .effects-glow .glass {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.3), 0 0 calc(40px * var(--bloom-strength, 0)) hsl(var(--primary) / 0.4);
   }
 
   .effects-neon {

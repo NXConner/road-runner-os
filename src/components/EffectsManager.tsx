@@ -105,6 +105,37 @@ export const EffectsManager = () => {
         ctx.fill();
         ctx.restore();
       });
+
+      // vignette
+      const vignetteIntensity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vignette-intensity') || '0') || 0;
+      if (vignetteIntensity > 0) {
+        const gradient = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.min(canvas.width, canvas.height) * 0.2,
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.hypot(canvas.width, canvas.height) * 0.6
+        );
+        gradient.addColorStop(0, `rgba(0,0,0,0)`);
+        gradient.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, vignetteIntensity)})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // CRT scanlines
+      const scanOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-opacity') || '0') || 0;
+      if (scanOpacity > 0) {
+        const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-size') || '2px') || 2;
+        const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-gap') || '3px') || 3;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, scanOpacity);
+        ctx.fillStyle = '#000';
+        for (let y = 0; y < canvas.height; y += (size + gap)) {
+          ctx.fillRect(0, y, canvas.width, size);
+        }
+        ctx.restore();
+      }
     };
 
     const animate = () => {

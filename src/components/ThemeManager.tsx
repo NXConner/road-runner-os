@@ -73,6 +73,11 @@ export const ThemeManager = () => {
     noiseOpacity: 0,
     windowParallaxScale: 0,
     cardGrainOpacity: 0,
+    bloomStrength: 0,
+    vignetteIntensity: 0,
+    crtScanlineOpacity: 0,
+    crtScanlineSize: 2,
+    crtScanlineGap: 3,
   });
 
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -114,6 +119,11 @@ export const ThemeManager = () => {
           noiseOpacity: typeof parsed.noiseOpacity === 'number' ? parsed.noiseOpacity : prev.noiseOpacity,
           windowParallaxScale: typeof parsed.windowParallaxScale === 'number' ? parsed.windowParallaxScale : prev.windowParallaxScale,
           cardGrainOpacity: typeof parsed.cardGrainOpacity === 'number' ? parsed.cardGrainOpacity : prev.cardGrainOpacity,
+          bloomStrength: typeof parsed.bloomStrength === 'number' ? parsed.bloomStrength : prev.bloomStrength,
+          vignetteIntensity: typeof parsed.vignetteIntensity === 'number' ? parsed.vignetteIntensity : prev.vignetteIntensity,
+          crtScanlineOpacity: typeof parsed.crtScanlineOpacity === 'number' ? parsed.crtScanlineOpacity : prev.crtScanlineOpacity,
+          crtScanlineSize: typeof parsed.crtScanlineSize === 'number' ? parsed.crtScanlineSize : prev.crtScanlineSize,
+          crtScanlineGap: typeof parsed.crtScanlineGap === 'number' ? parsed.crtScanlineGap : prev.crtScanlineGap,
         }));
       }
     } catch {
@@ -162,6 +172,11 @@ export const ThemeManager = () => {
     root.style.setProperty('--noise-opacity', `${customizations.noiseOpacity}`);
     root.style.setProperty('--window-parallax-scale', `${customizations.windowParallaxScale}`);
     root.style.setProperty('--card-grain-opacity', `${customizations.cardGrainOpacity}`);
+    root.style.setProperty('--bloom-strength', `${customizations.bloomStrength}`);
+    root.style.setProperty('--vignette-intensity', `${customizations.vignetteIntensity}`);
+    root.style.setProperty('--crt-scanline-opacity', `${customizations.crtScanlineOpacity}`);
+    root.style.setProperty('--crt-scanline-size', `${customizations.crtScanlineSize}px`);
+    root.style.setProperty('--crt-scanline-gap', `${customizations.crtScanlineGap}px`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
     } catch {
@@ -331,6 +346,11 @@ export const ThemeManager = () => {
               noiseOpacity: { min: 0, max: 1, step: 0.05, unit: '' },
               windowParallaxScale: { min: 0, max: 0.5, step: 0.05, unit: 'x' },
               cardGrainOpacity: { min: 0, max: 0.8, step: 0.05, unit: '' },
+              bloomStrength: { min: 0, max: 1, step: 0.05, unit: '' },
+              vignetteIntensity: { min: 0, max: 1, step: 0.05, unit: '' },
+              crtScanlineOpacity: { min: 0, max: 1, step: 0.05, unit: '' },
+              crtScanlineSize: { min: 1, max: 4, step: 1, unit: 'px' },
+              crtScanlineGap: { min: 2, max: 6, step: 1, unit: 'px' },
               particleDensity: { min: 0, max: 100, unit: '%' },
               particleSize: { min: 1, max: 6, unit: 'px' },
               particleSpeed: { min: 0.2, max: 3, step: 0.1, unit: 'x' },
