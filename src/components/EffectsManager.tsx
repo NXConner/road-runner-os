@@ -39,17 +39,33 @@ export const EffectsManager = () => {
     const particles: Particle[] = [];
     let particleId = 0;
 
+    const readVar = (name: string, fallback: string) =>
+      getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+
+    const getSettings = () => {
+      const densityPercent = parseFloat(readVar('--particle-density', '50%').replace('%', '')) || 50;
+      const sizePx = parseFloat(readVar('--particle-size', '2px').replace('px', '')) || 2;
+      const speedMultiplier = parseFloat(readVar('--particle-speed', '1')) || 1;
+      const lifeFrames = parseFloat(readVar('--particle-life', '60')) || 60;
+      return { densityPercent, sizePx, speedMultiplier, lifeFrames };
+    };
+
     const createParticle = (x: number, y: number) => {
       if (!document.body.classList.contains('effects-particles')) return;
+      const { speedMultiplier, lifeFrames, densityPercent } = (() => {
+        const gp = getSettings();
+        return { ...gp };
+      })();
+      if (!densityPercent || densityPercent <= 0) return;
       
       particles.push({
         id: particleId++,
         x,
         y,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
-        life: 60,
-        maxLife: 60,
+        vx: (Math.random() - 0.5) * 2 * speedMultiplier,
+        vy: (Math.random() - 0.5) * 2 * speedMultiplier,
+        life: lifeFrames,
+        maxLife: lifeFrames,
         color: getComputedStyle(document.documentElement).getPropertyValue('--primary') || '45, 100%, 60%'
       });
     };
@@ -69,17 +85,61 @@ export const EffectsManager = () => {
 
     const drawParticles = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const { sizePx } = getSettings();
       
+      // noise overlay
+      const noiseOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--noise-opacity') || '0') || 0;
+      if (noiseOpacity > 0) {
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const val = Math.random() * 255;
+          data[i] = val; data[i+1] = val; data[i+2] = val; data[i+3] = noiseOpacity * 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+
       particles.forEach(particle => {
         const alpha = particle.life / particle.maxLife;
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = `hsl(${particle.color})`;
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+        ctx.arc(particle.x, particle.y, sizePx, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
+
+      // vignette
+      const vignetteIntensity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vignette-intensity') || '0') || 0;
+      if (vignetteIntensity > 0) {
+        const gradient = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.min(canvas.width, canvas.height) * 0.2,
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.hypot(canvas.width, canvas.height) * 0.6
+        );
+        gradient.addColorStop(0, `rgba(0,0,0,0)`);
+        gradient.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, vignetteIntensity)})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // CRT scanlines
+      const scanOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-opacity') || '0') || 0;
+      if (scanOpacity > 0) {
+        const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-size') || '2px') || 2;
+        const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--crt-scanline-gap') || '3px') || 3;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, scanOpacity);
+        ctx.fillStyle = '#000';
+        for (let y = 0; y < canvas.height; y += (size + gap)) {
+          ctx.fillRect(0, y, canvas.width, size);
+        }
+        ctx.restore();
+      }
     };
 
     const animate = () => {
@@ -94,17 +154,38 @@ export const EffectsManager = () => {
     let lastParticleTime = 0;
     const handleMouseMove = (e: MouseEvent) => {
       const now = Date.now();
-      if (now - lastParticleTime > 50) { // Throttle particle creation
-        createParticle(e.clientX, e.clientY);
+      const { densityPercent } = getSettings();
+      // Throttle based on density; higher density => more frequent
+      const throttleMs = 100 - Math.min(95, densityPercent) ;
+      if (now - lastParticleTime > throttleMs) {
+        const bursts = Math.max(1, Math.round(densityPercent / 25));
+        for (let i = 0; i < bursts; i++) {
+          const jitterX = (Math.random() - 0.5) * 10;
+          const jitterY = (Math.random() - 0.5) * 10;
+          createParticle(e.clientX + jitterX, e.clientY + jitterY);
+        }
         lastParticleTime = now;
       }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
 
+    // parallax tracking
+    const handleParallax = (e: MouseEvent) => {
+      const maxOffset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--parallax-intensity').replace('px','')) || 0;
+      if (maxOffset === 0) return;
+      const percentX = (e.clientX / window.innerWidth - 0.5) * 2; // -1..1
+      const percentY = (e.clientY / window.innerHeight - 0.5) * 2;
+      const root = document.documentElement;
+      root.style.setProperty('--parallax-x', `${(-percentX * maxOffset).toFixed(1)}px`);
+      root.style.setProperty('--parallax-y', `${(-percentY * maxOffset).toFixed(1)}px`);
+    };
+    document.addEventListener('mousemove', handleParallax);
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousemove', handleParallax);
       document.body.removeChild(canvas);
     };
   }, []);

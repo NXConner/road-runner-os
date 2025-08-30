@@ -49,6 +49,7 @@
     /* Glass morphism effects */
     --glass-bg: 220 15% 12% / 0.8;
     --glass-border: 210 40% 98% / 0.1;
+    --glass-blur: 20px; /* Tunable blur radius */
     
     /* Gradients */
     --gradient-asphalt: linear-gradient(135deg, hsl(218 23% 8%), hsl(220 15% 12%));
@@ -63,6 +64,29 @@
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* User customizations (defaults) */
+    --window-opacity: 90%;
+    --animation-speed: 100%;
+    --particle-density: 50%;
+    --particle-size: 2px;
+    --particle-speed: 1; /* multiplier */
+    --particle-life: 60; /* frames */
+    --wallpaper-image: initial;
+    --parallax-intensity: 0px; /* max px offset */
+    --parallax-x: 0px;
+    --parallax-y: 0px;
+    --noise-opacity: 0; /* 0..1 applied to noise canvas */
+    --window-parallax-scale: 0; /* 0..0.5 multiplier */
+    --card-grain-opacity: 0; /* 0..1 */
+    --bloom-strength: 0; /* 0..1 */
+    --vignette-intensity: 0; /* 0..1 */
+    --crt-scanline-opacity: 0; /* 0..1 */
+    --crt-scanline-size: 2px; /* line thickness */
+    --crt-scanline-gap: 3px; /* space between lines */
+    --tilt-intensity: 0; /* 0..1 */
+    --dof-blur: 0px; /* blur for non-active windows */
+    --tilt-intensity: 0; /* 0..1 */
   }
 }
 
@@ -80,9 +104,26 @@
   /* Glass morphism utility classes */
   .glass {
     background: hsl(var(--glass-bg));
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(var(--glass-blur));
     border: 1px solid hsl(var(--glass-border));
     box-shadow: var(--shadow-glass);
+  }
+
+  /* Grain overlay for card surfaces only, controlled by --card-grain-opacity */
+  .bg-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--card-grain-opacity, 0);
+    mix-blend-mode: overlay;
+    background-size: 200px 200px;
+    background-repeat: repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
   }
   
   .glow-yellow {
@@ -113,7 +154,7 @@
 
   /* Theme Effects */
   .effects-glow .glass {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.3), 0 0 calc(40px * var(--bloom-strength, 0)) hsl(var(--primary) / 0.4);
   }
 
   .effects-neon {
