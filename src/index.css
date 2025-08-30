@@ -77,6 +77,8 @@
     --parallax-x: 0px;
     --parallax-y: 0px;
     --noise-opacity: 0; /* 0..1 applied to noise canvas */
+    --window-parallax-scale: 0; /* 0..0.5 multiplier */
+    --card-grain-opacity: 0; /* 0..1 */
   }
 }
 
@@ -97,6 +99,23 @@
     backdrop-filter: blur(var(--glass-blur));
     border: 1px solid hsl(var(--glass-border));
     box-shadow: var(--shadow-glass);
+  }
+
+  /* Grain overlay for card surfaces only, controlled by --card-grain-opacity */
+  .bg-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--card-grain-opacity, 0);
+    mix-blend-mode: overlay;
+    background-size: 200px 200px;
+    background-repeat: repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
   }
   
   .glow-yellow {

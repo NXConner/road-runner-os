@@ -71,6 +71,8 @@ export const ThemeManager = () => {
     glassBlur: 20,
     parallaxIntensity: 0,
     noiseOpacity: 0,
+    windowParallaxScale: 0,
+    cardGrainOpacity: 0,
   });
 
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -110,6 +112,8 @@ export const ThemeManager = () => {
           glassBlur: typeof parsed.glassBlur === 'number' ? parsed.glassBlur : prev.glassBlur,
           parallaxIntensity: typeof parsed.parallaxIntensity === 'number' ? parsed.parallaxIntensity : prev.parallaxIntensity,
           noiseOpacity: typeof parsed.noiseOpacity === 'number' ? parsed.noiseOpacity : prev.noiseOpacity,
+          windowParallaxScale: typeof parsed.windowParallaxScale === 'number' ? parsed.windowParallaxScale : prev.windowParallaxScale,
+          cardGrainOpacity: typeof parsed.cardGrainOpacity === 'number' ? parsed.cardGrainOpacity : prev.cardGrainOpacity,
         }));
       }
     } catch {
@@ -156,6 +160,8 @@ export const ThemeManager = () => {
     root.style.setProperty('--glass-blur', `${customizations.glassBlur}px`);
     root.style.setProperty('--parallax-intensity', `${customizations.parallaxIntensity}px`);
     root.style.setProperty('--noise-opacity', `${customizations.noiseOpacity}`);
+    root.style.setProperty('--window-parallax-scale', `${customizations.windowParallaxScale}`);
+    root.style.setProperty('--card-grain-opacity', `${customizations.cardGrainOpacity}`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
     } catch {
@@ -323,6 +329,8 @@ export const ThemeManager = () => {
               glassBlur: { min: 0, max: 40, unit: 'px' },
               parallaxIntensity: { min: 0, max: 40, unit: 'px' },
               noiseOpacity: { min: 0, max: 1, step: 0.05, unit: '' },
+              windowParallaxScale: { min: 0, max: 0.5, step: 0.05, unit: 'x' },
+              cardGrainOpacity: { min: 0, max: 0.8, step: 0.05, unit: '' },
               particleDensity: { min: 0, max: 100, unit: '%' },
               particleSize: { min: 1, max: 6, unit: 'px' },
               particleSpeed: { min: 0.2, max: 3, step: 0.1, unit: 'x' },

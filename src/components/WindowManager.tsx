@@ -161,8 +161,8 @@ export const WindowManager = ({
               window.id === activeWindow ? 'ring-2 ring-primary/50' : ''
             }`}
             style={{
-              left: window.position.x,
-              top: window.position.y,
+              left: `calc(${window.position.x}px + var(--window-parallax-scale) * var(--parallax-x))`,
+              top: `calc(${window.position.y}px + var(--window-parallax-scale) * var(--parallax-y))`,
               width: window.size.width,
               height: window.size.height,
               zIndex: window.zIndex,
