@@ -69,6 +69,8 @@ export const ThemeManager = () => {
     particleSpeed: 1,
     particleLife: 60,
     glassBlur: 20,
+    parallaxIntensity: 0,
+    noiseOpacity: 0,
   });
 
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -106,6 +108,8 @@ export const ThemeManager = () => {
           particleSpeed: typeof parsed.particleSpeed === 'number' ? parsed.particleSpeed : prev.particleSpeed,
           particleLife: typeof parsed.particleLife === 'number' ? parsed.particleLife : prev.particleLife,
           glassBlur: typeof parsed.glassBlur === 'number' ? parsed.glassBlur : prev.glassBlur,
+          parallaxIntensity: typeof parsed.parallaxIntensity === 'number' ? parsed.parallaxIntensity : prev.parallaxIntensity,
+          noiseOpacity: typeof parsed.noiseOpacity === 'number' ? parsed.noiseOpacity : prev.noiseOpacity,
         }));
       }
     } catch {
@@ -150,6 +154,8 @@ export const ThemeManager = () => {
     root.style.setProperty('--particle-speed', `${customizations.particleSpeed}`);
     root.style.setProperty('--particle-life', `${customizations.particleLife}`);
     root.style.setProperty('--glass-blur', `${customizations.glassBlur}px`);
+    root.style.setProperty('--parallax-intensity', `${customizations.parallaxIntensity}px`);
+    root.style.setProperty('--noise-opacity', `${customizations.noiseOpacity}`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
     } catch {
@@ -315,6 +321,8 @@ export const ThemeManager = () => {
               windowOpacity: { min: 30, max: 100, unit: '%' },
               animationSpeed: { min: 50, max: 200, unit: '%' },
               glassBlur: { min: 0, max: 40, unit: 'px' },
+              parallaxIntensity: { min: 0, max: 40, unit: 'px' },
+              noiseOpacity: { min: 0, max: 1, step: 0.05, unit: '' },
               particleDensity: { min: 0, max: 100, unit: '%' },
               particleSize: { min: 1, max: 6, unit: 'px' },
               particleSpeed: { min: 0.2, max: 3, step: 0.1, unit: 'x' },
@@ -391,6 +399,11 @@ export const ThemeManager = () => {
             >
               {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+            <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 6, particleDensity: 20 }))}>Subtle</Button>
+            <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 14, particleDensity: 50 }))}>Balanced</Button>
+            <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 24, particleDensity: 80 }))}>Max</Button>
           </div>
         </TabsContent>
 

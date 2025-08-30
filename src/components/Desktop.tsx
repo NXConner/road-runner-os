@@ -175,7 +175,7 @@ export const Desktop = () => {
         // Use theme-driven wallpaper if set, fallback to imported default
         backgroundImage: `var(--wallpaper-image, url(${wallpaper}))`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: `calc(50% + var(--parallax-x)) calc(50% + var(--parallax-y))`,
         backgroundRepeat: 'no-repeat'
       }}
     >

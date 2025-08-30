@@ -83,6 +83,18 @@ export const EffectsManager = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const { sizePx } = getSettings();
       
+      // noise overlay
+      const noiseOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--noise-opacity') || '0') || 0;
+      if (noiseOpacity > 0) {
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const val = Math.random() * 255;
+          data[i] = val; data[i+1] = val; data[i+2] = val; data[i+3] = noiseOpacity * 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+
       particles.forEach(particle => {
         const alpha = particle.life / particle.maxLife;
         ctx.save();
@@ -123,9 +135,22 @@ export const EffectsManager = () => {
 
     document.addEventListener('mousemove', handleMouseMove);
 
+    // parallax tracking
+    const handleParallax = (e: MouseEvent) => {
+      const maxOffset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--parallax-intensity').replace('px','')) || 0;
+      if (maxOffset === 0) return;
+      const percentX = (e.clientX / window.innerWidth - 0.5) * 2; // -1..1
+      const percentY = (e.clientY / window.innerHeight - 0.5) * 2;
+      const root = document.documentElement;
+      root.style.setProperty('--parallax-x', `${(-percentX * maxOffset).toFixed(1)}px`);
+      root.style.setProperty('--parallax-y', `${(-percentY * maxOffset).toFixed(1)}px`);
+    };
+    document.addEventListener('mousemove', handleParallax);
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousemove', handleParallax);
       document.body.removeChild(canvas);
     };
   }, []);

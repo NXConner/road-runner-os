@@ -73,6 +73,10 @@
     --particle-speed: 1; /* multiplier */
     --particle-life: 60; /* frames */
     --wallpaper-image: initial;
+    --parallax-intensity: 0px; /* max px offset */
+    --parallax-x: 0px;
+    --parallax-y: 0px;
+    --noise-opacity: 0; /* 0..1 applied to noise canvas */
   }
 }
 
