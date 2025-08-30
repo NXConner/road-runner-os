@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -59,6 +61,13 @@ export const ThemeManager = () => {
     } catch {
       return true;
     }
+  });
+
+  const [effectsEnabled, setEffectsEnabled] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('asphaltos.effectsEnabled');
+      return raw === null ? true : raw === 'true';
+    } catch { return true; }
   });
   const [customizations, setCustomizations] = useState({
     fontSize: 100,
@@ -163,26 +172,39 @@ export const ThemeManager = () => {
     root.style.fontSize = `${customizations.fontSize}%`;
     root.style.setProperty('--window-opacity', `${customizations.windowOpacity}%`);
     root.style.setProperty('--animation-speed', `${customizations.animationSpeed}%`);
-    root.style.setProperty('--particle-density', `${customizations.particleDensity}%`);
-    root.style.setProperty('--particle-size', `${customizations.particleSize}px`);
-    root.style.setProperty('--particle-speed', `${customizations.particleSpeed}`);
-    root.style.setProperty('--particle-life', `${customizations.particleLife}`);
-    root.style.setProperty('--glass-blur', `${customizations.glassBlur}px`);
-    root.style.setProperty('--parallax-intensity', `${customizations.parallaxIntensity}px`);
-    root.style.setProperty('--noise-opacity', `${customizations.noiseOpacity}`);
-    root.style.setProperty('--window-parallax-scale', `${customizations.windowParallaxScale}`);
-    root.style.setProperty('--card-grain-opacity', `${customizations.cardGrainOpacity}`);
-    root.style.setProperty('--bloom-strength', `${customizations.bloomStrength}`);
-    root.style.setProperty('--vignette-intensity', `${customizations.vignetteIntensity}`);
-    root.style.setProperty('--crt-scanline-opacity', `${customizations.crtScanlineOpacity}`);
-    root.style.setProperty('--crt-scanline-size', `${customizations.crtScanlineSize}px`);
-    root.style.setProperty('--crt-scanline-gap', `${customizations.crtScanlineGap}px`);
+    // If effects disabled, set effect intensities to zero
+    const on = effectsEnabled;
+    root.style.setProperty('--particle-density', `${on ? customizations.particleDensity : 0}%`);
+    root.style.setProperty('--particle-size', `${on ? customizations.particleSize : 0}px`);
+    root.style.setProperty('--particle-speed', `${on ? customizations.particleSpeed : 0}`);
+    root.style.setProperty('--particle-life', `${on ? customizations.particleLife : 0}`);
+    root.style.setProperty('--glass-blur', `${on ? customizations.glassBlur : 0}px`);
+    root.style.setProperty('--parallax-intensity', `${on ? customizations.parallaxIntensity : 0}px`);
+    root.style.setProperty('--noise-opacity', `${on ? customizations.noiseOpacity : 0}`);
+    root.style.setProperty('--window-parallax-scale', `${on ? customizations.windowParallaxScale : 0}`);
+    root.style.setProperty('--card-grain-opacity', `${on ? customizations.cardGrainOpacity : 0}`);
+    root.style.setProperty('--bloom-strength', `${on ? customizations.bloomStrength : 0}`);
+    root.style.setProperty('--vignette-intensity', `${on ? customizations.vignetteIntensity : 0}`);
+    root.style.setProperty('--crt-scanline-opacity', `${on ? customizations.crtScanlineOpacity : 0}`);
+    root.style.setProperty('--crt-scanline-size', `${on ? customizations.crtScanlineSize : 0}px`);
+    root.style.setProperty('--crt-scanline-gap', `${on ? customizations.crtScanlineGap : 0}px`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
     } catch {
       // ignore storage errors
     }
-  }, [customizations]);
+  }, [customizations, effectsEnabled]);
+
+  // Persist effects toggle and ensure particles class follows
+  useEffect(() => {
+    try { localStorage.setItem('asphaltos.effectsEnabled', String(effectsEnabled)); } catch {}
+    if (!effectsEnabled) {
+      document.body.classList.remove('effects-particles');
+    } else {
+      // re-apply theme effects classes
+      applyTheme(currentTheme);
+    }
+  }, [effectsEnabled]);
 
   const handleThemeChange = (theme: Theme) => {
     setCurrentTheme(theme);
@@ -337,6 +359,16 @@ export const ThemeManager = () => {
 
         <TabsContent value="customize">
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Effects Enabled</Label>
+                <Switch checked={effectsEnabled} onCheckedChange={(v) => setEffectsEnabled(Boolean(v))} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Reduce Motion</Label>
+                <Switch checked={customizations.animationSpeed <= 60} onCheckedChange={(v) => setCustomizations(c => ({ ...c, animationSpeed: v ? 60 : 100 }))} />
+              </div>
+            </div>
             {Object.entries({
               fontSize: { min: 50, max: 150, unit: '%' },
               windowOpacity: { min: 30, max: 100, unit: '%' },
@@ -438,6 +470,76 @@ export const ThemeManager = () => {
         <TabsContent value="about">
           <div className="text-xs text-muted-foreground">
             Customize advanced UI effects and create your own theme. Settings persist locally.
+            <div className="mt-3 flex gap-2">
+              <Button variant="secondary" onClick={() => {
+                const data = {
+                  themeId: currentTheme.id,
+                  soundEnabled,
+                  effectsEnabled,
+                  customizations,
+                  customWallpaper,
+                  customTheme
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'asphaltos-settings.json'; a.click();
+                URL.revokeObjectURL(url);
+              }}>Export</Button>
+              <Button variant="outline" onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file'; input.accept = 'application/json';
+                input.onchange = async () => {
+                  const file = input.files?.[0]; if (!file) return;
+                  const text = await file.text();
+                  try {
+                    const data = JSON.parse(text);
+                    if (data.customizations) setCustomizations((p) => ({ ...p, ...data.customizations }));
+                    if (typeof data.soundEnabled === 'boolean') setSoundEnabled(data.soundEnabled);
+                    if (typeof data.effectsEnabled === 'boolean') setEffectsEnabled(data.effectsEnabled);
+                    if (typeof data.themeId === 'string') {
+                      const t = themes.find(t => t.id === data.themeId) || currentTheme;
+                      handleThemeChange(t);
+                    }
+                    if (typeof data.customWallpaper === 'string') {
+                      setCustomWallpaper(data.customWallpaper);
+                      document.documentElement.style.setProperty('--wallpaper-image', `url(${data.customWallpaper})`);
+                    }
+                    if (data.customTheme) setCustomTheme(data.customTheme);
+                  } catch {}
+                };
+                input.click();
+              }}>Import</Button>
+              <Button variant="destructive" onClick={() => {
+                localStorage.removeItem('asphaltos.customizations');
+                localStorage.removeItem('asphaltos.customWallpaper');
+                localStorage.removeItem('asphaltos.customTheme');
+                localStorage.removeItem('asphaltos.effectsEnabled');
+                setCustomizations({
+                  fontSize: 100,
+                  windowOpacity: 90,
+                  animationSpeed: 100,
+                  particleDensity: 50,
+                  particleSize: 2,
+                  particleSpeed: 1,
+                  particleLife: 60,
+                  glassBlur: 20,
+                  parallaxIntensity: 0,
+                  noiseOpacity: 0,
+                  windowParallaxScale: 0,
+                  cardGrainOpacity: 0,
+                  bloomStrength: 0,
+                  vignetteIntensity: 0,
+                  crtScanlineOpacity: 0,
+                  crtScanlineSize: 2,
+                  crtScanlineGap: 3,
+                });
+                setCustomWallpaper(null);
+                setCustomTheme(null);
+                setEffectsEnabled(true);
+                applyTheme(currentTheme);
+              }}>Reset</Button>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
