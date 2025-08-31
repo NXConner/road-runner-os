@@ -84,9 +84,6 @@
     --crt-scanline-opacity: 0; /* 0..1 */
     --crt-scanline-size: 2px; /* line thickness */
     --crt-scanline-gap: 3px; /* space between lines */
-    --tilt-intensity: 0; /* 0..1 */
-    --dof-blur: 0px; /* blur for non-active windows */
-    --tilt-intensity: 0; /* 0..1 */
   }
 }
 

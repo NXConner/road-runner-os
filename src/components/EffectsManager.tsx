@@ -52,11 +52,7 @@ export const EffectsManager = () => {
 
     const createParticle = (x: number, y: number) => {
       if (!document.body.classList.contains('effects-particles')) return;
-      const { speedMultiplier, lifeFrames, densityPercent } = (() => {
-        const gp = getSettings();
-        return { ...gp };
-      })();
-      if (!densityPercent || densityPercent <= 0) return;
+      const { speedMultiplier, lifeFrames } = getSettings();
       
       particles.push({
         id: particleId++,

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
 import { Minimize2, Square, X, Maximize2 } from 'lucide-react';
 import { createWindowComponent } from '@/lib/windowRegistry';
-import { getTheme } from '@/lib/themes';
 
 interface WindowManagerProps {
   windows: Window[];
@@ -27,22 +26,6 @@ export const WindowManager = ({
     startWindowX: number;
     startWindowY: number;
   } | null>(null);
-  const [perAppThemeMap, setPerAppThemeMap] = useState<Record<string, string>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('asphaltos.perAppTheme') || '{}');
-    } catch { return {}; }
-  });
-
-  // listen to storage changes to update mapping live
-  useEffect(() => {
-    const handler = (e: StorageEvent) => {
-      if (e.key === 'asphaltos.perAppTheme' && e.newValue) {
-        try { setPerAppThemeMap(JSON.parse(e.newValue)); } catch {}
-      }
-    };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
   
   const [/* resizeState */, setResizeState] = useState<{
     windowId: string;
@@ -183,32 +166,8 @@ export const WindowManager = ({
               width: window.size.width,
               height: window.size.height,
               zIndex: window.zIndex,
-              // per-app theme override primary/accent
-              ...(perAppThemeMap[window.kind] ? (() => {
-                const t = getTheme(perAppThemeMap[window.kind]);
-                return {
-                  ['--primary' as any]: t.colors.primary.replace('hsl(', '').replace(')', ''),
-                  ['--accent' as any]: t.colors.accent.replace('hsl(', '').replace(')', ''),
-                } as React.CSSProperties;
-              })() : {}),
             }}
             onClick={() => onFocus(window.id)}
-            onMouseMove={(e) => {
-              const target = e.currentTarget as HTMLDivElement;
-              const rect = target.getBoundingClientRect();
-              const cx = rect.left + rect.width / 2;
-              const cy = rect.top + rect.height / 2;
-              const dx = (e.clientX - cx) / rect.width;
-              const dy = (e.clientY - cy) / rect.height;
-              const intensity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tilt-intensity') || '0') || 0;
-              const maxDeg = 10 * intensity;
-              const rotX = (-dy * maxDeg).toFixed(2);
-              const rotY = (dx * maxDeg).toFixed(2);
-              target.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.transform = '';
-            }}
           >
             {/* Title Bar */}
             <div
@@ -264,7 +223,7 @@ export const WindowManager = ({
             </div>
 
             {/* Window Content */}
-            <div className="flex-1 overflow-auto bg-card/50 p-0" style={{ filter: window.id === activeWindow ? 'none' : 'blur(var(--dof-blur))' }}>
+            <div className="flex-1 overflow-auto bg-card/50 p-0">
               {createWindowComponent(window.kind, window.meta)}
             </div>
 

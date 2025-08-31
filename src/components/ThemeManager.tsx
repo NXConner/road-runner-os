@@ -87,8 +87,6 @@ export const ThemeManager = () => {
     crtScanlineOpacity: 0,
     crtScanlineSize: 2,
     crtScanlineGap: 3,
-    tiltIntensity: 0,
-    dofBlur: 0,
   });
 
   const [customWallpaper, setCustomWallpaper] = useState<string | null>(() => {
@@ -135,8 +133,6 @@ export const ThemeManager = () => {
           crtScanlineOpacity: typeof parsed.crtScanlineOpacity === 'number' ? parsed.crtScanlineOpacity : prev.crtScanlineOpacity,
           crtScanlineSize: typeof parsed.crtScanlineSize === 'number' ? parsed.crtScanlineSize : prev.crtScanlineSize,
           crtScanlineGap: typeof parsed.crtScanlineGap === 'number' ? parsed.crtScanlineGap : prev.crtScanlineGap,
-          tiltIntensity: typeof parsed.tiltIntensity === 'number' ? parsed.tiltIntensity : prev.tiltIntensity,
-          dofBlur: typeof parsed.dofBlur === 'number' ? parsed.dofBlur : prev.dofBlur,
         }));
       }
     } catch {
@@ -159,30 +155,6 @@ export const ThemeManager = () => {
     } catch {
       // ignore storage errors
     }
-    // Auto-theme listeners
-    const mode = localStorage.getItem('asphaltos.autoTheme');
-    let systemListener: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null = null;
-    let interval: number | null = null;
-    if (mode === 'system') {
-      const mql = window.matchMedia('(prefers-color-scheme: dark)');
-      systemListener = () => {
-        handleThemeChange(mql.matches ? themes[0] : themes[1] || themes[0]);
-      };
-      mql.addEventListener('change', systemListener);
-    } else if (mode === 'time') {
-      interval = window.setInterval(() => {
-        const hour = new Date().getHours();
-        const night = hour >= 18 || hour < 6;
-        handleThemeChange(night ? themes[0] : themes[1] || themes[0]);
-      }, 60_000);
-    }
-    return () => {
-      if (systemListener) {
-        const mql = window.matchMedia('(prefers-color-scheme: dark)');
-        mql.removeEventListener('change', systemListener);
-      }
-      if (interval) window.clearInterval(interval);
-    };
   }, [currentTheme]);
 
   // Persist sound setting
@@ -216,8 +188,6 @@ export const ThemeManager = () => {
     root.style.setProperty('--crt-scanline-opacity', `${on ? customizations.crtScanlineOpacity : 0}`);
     root.style.setProperty('--crt-scanline-size', `${on ? customizations.crtScanlineSize : 0}px`);
     root.style.setProperty('--crt-scanline-gap', `${on ? customizations.crtScanlineGap : 0}px`);
-    root.style.setProperty('--tilt-intensity', `${on ? customizations.tiltIntensity : 0}`);
-    root.style.setProperty('--dof-blur', `${on ? customizations.dofBlur : 0}px`);
     try {
       localStorage.setItem('asphaltos.customizations', JSON.stringify(customizations));
     } catch {
@@ -385,35 +355,6 @@ export const ThemeManager = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Per-App Themes */}
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Per-App Themes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-xs">
-              {['file-explorer','terminal','settings','repo-browser','web-browser','panel:my-computer','panel:documents','panel:recycle-bin'].map(kind => (
-                <div key={kind} className="flex items-center gap-2">
-                  <div className="w-32 capitalize">{kind}</div>
-                  <select
-                    className="bg-surface-elevated rounded px-2 py-1"
-                    value={(JSON.parse(localStorage.getItem('asphaltos.perAppTheme') || '{}') as any)[kind] || ''}
-                    onChange={(e) => {
-                      const map = JSON.parse(localStorage.getItem('asphaltos.perAppTheme') || '{}');
-                      const val = e.target.value;
-                      if (val) map[kind] = val; else delete map[kind];
-                      localStorage.setItem('asphaltos.perAppTheme', JSON.stringify(map));
-                    }}
-                  >
-                    <option value="">System</option>
-                    {availableThemes.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="customize">
@@ -442,8 +383,6 @@ export const ThemeManager = () => {
               crtScanlineOpacity: { min: 0, max: 1, step: 0.05, unit: '' },
               crtScanlineSize: { min: 1, max: 4, step: 1, unit: 'px' },
               crtScanlineGap: { min: 2, max: 6, step: 1, unit: 'px' },
-              tiltIntensity: { min: 0, max: 1, step: 0.05, unit: '' },
-              dofBlur: { min: 0, max: 8, step: 1, unit: 'px' },
               particleDensity: { min: 0, max: 100, unit: '%' },
               particleSize: { min: 1, max: 6, unit: 'px' },
               particleSpeed: { min: 0.2, max: 3, step: 0.1, unit: 'x' },
@@ -494,17 +433,8 @@ export const ThemeManager = () => {
                   />
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-between gap-2">
+              <div className="mt-3 flex items-center justify-between">
                 <input type="file" accept="image/*" onChange={handleWallpaperUpload} />
-                <input type="file" accept="video/*" onChange={(e) => {
-                  const file = e.target.files?.[0]; if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    const url = reader.result as string;
-                    try { localStorage.setItem('asphaltos.wallpaperVideo', url); } catch {}
-                  };
-                  reader.readAsDataURL(file);
-                }} />
                 {customWallpaper && (
                   <Button variant="secondary" onClick={() => {
                     setCustomWallpaper(null);
@@ -513,9 +443,6 @@ export const ThemeManager = () => {
                     root.style.setProperty('--wallpaper-image', `url(${currentTheme.wallpaper})`);
                   }}>Remove Custom</Button>
                 )}
-                <Button variant="outline" onClick={() => {
-                  localStorage.removeItem('asphaltos.wallpaperVideo');
-                }}>Remove Video</Button>
               </div>
             </CardContent>
           </Card>
@@ -537,43 +464,6 @@ export const ThemeManager = () => {
             <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 6, particleDensity: 20 }))}>Subtle</Button>
             <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 14, particleDensity: 50 }))}>Balanced</Button>
             <Button variant="secondary" onClick={() => setCustomizations(c => ({ ...c, glassBlur: 24, particleDensity: 80 }))}>Max</Button>
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-            <Button variant="secondary" onClick={() => setCustomizations(c => ({
-              ...c,
-              animationSpeed: 60, glassBlur: 6, particleDensity: 10, noiseOpacity: 0, bloomStrength: 0, vignetteIntensity: 0, crtScanlineOpacity: 0
-            }))}>Low-end</Button>
-            <Button variant="secondary" onClick={() => setCustomizations(c => ({
-              ...c,
-              animationSpeed: 100, glassBlur: 14, particleDensity: 40, noiseOpacity: 0.1, bloomStrength: 0.2, vignetteIntensity: 0.2, crtScanlineOpacity: 0
-            }))}>Balanced</Button>
-            <Button variant="secondary" onClick={() => setCustomizations(c => ({
-              ...c,
-              animationSpeed: 120, glassBlur: 24, particleDensity: 80, noiseOpacity: 0.15, bloomStrength: 0.4, vignetteIntensity: 0.35, crtScanlineOpacity: 0.2
-            }))}>High-end</Button>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-            <Button variant="outline" onClick={() => setCustomizations(c => ({ ...c, tiltIntensity: 0.2 as any }))}>Enable 3D Tilt</Button>
-            <Button variant="outline" onClick={() => setCustomizations(c => ({ ...c, tiltIntensity: 0 as any }))}>Disable 3D Tilt</Button>
-            <Button variant="outline" onClick={() => setCustomizations(c => ({ ...c, dofBlur: 4 as any }))}>Enable DoF</Button>
-            <Button variant="outline" onClick={() => setCustomizations(c => ({ ...c, dofBlur: 0 as any }))}>Disable DoF</Button>
-          </div>
-          <div className="mt-4">
-            <div className="text-sm font-medium mb-2">Auto Theme</div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <Button variant="outline" onClick={() => {
-                try { localStorage.setItem('asphaltos.autoTheme', 'system'); } catch {}
-                const mql = window.matchMedia('(prefers-color-scheme: dark)');
-                handleThemeChange(mql.matches ? themes[0] : themes[1] || themes[0]);
-              }}>System (match OS)</Button>
-              <Button variant="outline" onClick={() => {
-                try { localStorage.setItem('asphaltos.autoTheme', 'time'); } catch {}
-                const hour = new Date().getHours();
-                const night = hour >= 18 || hour < 6;
-                handleThemeChange(night ? themes[0] : themes[1] || themes[0]);
-              }}>Time-based (day/night)</Button>
-              <Button variant="secondary" onClick={() => localStorage.removeItem('asphaltos.autoTheme')}>Disable Auto</Button>
-            </div>
           </div>
         </TabsContent>
 
