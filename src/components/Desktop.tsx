@@ -25,6 +25,9 @@ export const Desktop = () => {
   const [windows, setWindows] = useState<Window[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [videoSrc, setVideoSrc] = useState<string | null>(() => {
+    try { return localStorage.getItem('asphaltos.wallpaperVideo'); } catch { return null; }
+  });
 
   const openWindow = (windowData: Omit<Window, 'id' | 'zIndex'>) => {
     const newWindow: Window = {
@@ -168,6 +171,11 @@ export const Desktop = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const raw = localStorage.getItem('asphaltos.wallpaperVideo');
+    if (raw) setVideoSrc(raw);
+  }, []);
+
   return (
     <div 
       className="h-screen w-screen overflow-hidden relative bg-gradient-asphalt"
@@ -179,6 +187,16 @@ export const Desktop = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {videoSrc && (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          src={videoSrc}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'translate(var(--parallax-x), var(--parallax-y))', zIndex: 0, pointerEvents: 'none' }}
+        />
+      )}
       {/* Effects Manager */}
       <EffectsManager />
       
