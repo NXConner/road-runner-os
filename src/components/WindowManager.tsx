@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Window } from './Desktop';
 import { Minimize2, Square, X, Maximize2 } from 'lucide-react';
