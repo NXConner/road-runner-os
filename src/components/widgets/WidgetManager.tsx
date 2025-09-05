@@ -29,7 +29,7 @@ interface WidgetManagerProps {
 
 export const WidgetManager = ({ onAddWidget, widgets, onRemoveWidget, onUpdateWidget }: WidgetManagerProps) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [dragState, setDragState] = useState<{
+  const [_dragState, setDragState] = useState<{
     id: string;
     startX: number;
     startY: number;
