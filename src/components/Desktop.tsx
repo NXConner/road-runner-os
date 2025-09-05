@@ -8,6 +8,7 @@ import { EffectsManager } from './EffectsManager';
 import wallpaper from '@/assets/asphalt-wallpaper.jpg';
 import { WindowKind, WindowMeta } from '@/lib/windowRegistry';
 import { getWidgetTemplateByName } from '@/lib/widgetsRegistry';
+import { themes, type Theme } from '@/lib/themes';
 
 export interface Window {
   id: string;
@@ -27,6 +28,24 @@ export const Desktop = () => {
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [videoSrc, setVideoSrc] = useState<string | null>(() => {
     try { return localStorage.getItem('asphaltos.wallpaperVideo'); } catch { return null; }
+  });
+  const [activeTheme, setActiveTheme] = useState<Theme>(themes[0]);
+  const [customizations, setCustomizations] = useState({
+    fontSize: 14,
+    windowOpacity: 0.95,
+    animationSpeed: 1,
+    particleDensity: 50,
+    particleSize: 2,
+    particleSpeed: 1,
+    particleLife: 3,
+    glassBlur: 20,
+    parallaxIntensity: 0.5,
+    shadowIntensity: 0.3,
+    borderRadius: 12,
+    tiltIntensity: 0.5,
+    dofBlur: 2,
+    crtScanlineOpacity: 0.1,
+    crtScanlineGap: 4
   });
 
   const openWindow = (windowData: Omit<Window, 'id' | 'zIndex'>) => {
@@ -72,6 +91,10 @@ export const Desktop = () => {
     setWidgets(prev => prev.map(w => 
       w.id === id ? { ...w, ...updates } : w
     ));
+  };
+
+  const handleImportTheme = (theme: Theme) => {
+    setActiveTheme(theme);
   };
 
   // Persist windows and widgets
@@ -201,7 +224,13 @@ export const Desktop = () => {
       <EffectsManager />
       
       {/* Theme Manager */}
-      <ThemeManager />
+      <ThemeManager 
+        activeTheme={activeTheme}
+        setActiveTheme={setActiveTheme}
+        customizations={customizations}
+        setCustomizations={setCustomizations}
+        onImportTheme={handleImportTheme}
+      />
       
       {/* Desktop Icons */}
       <DesktopIcons onOpenWindow={openWindow} />

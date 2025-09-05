@@ -2,21 +2,14 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { 
   Palette, 
   Download, 
   Upload, 
   RotateCcw, 
-  Sparkles, 
-  Zap,
-  Eye,
-  Waves,
-  Globe
+  Sparkles
 } from 'lucide-react';
 import { themes, type Theme } from '@/lib/themes';
 
