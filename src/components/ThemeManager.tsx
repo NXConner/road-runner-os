@@ -132,29 +132,41 @@ export const ThemeManager = ({
             <p className="text-sm text-muted-foreground">Share your theme with others.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <label htmlFor="import-theme" className="cursor-pointer flex items-center gap-2">
+            <div>
+              <Button variant="outline" size="sm" onClick={() => document.getElementById('import-theme')?.click()}>
                 <Upload className="h-4 w-4" /> Import
-              </label>
-              <input id="import-theme" type="file" accept=".json" className="hidden" onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  setImportFile(e.target.files[0]);
-                }
-              }} />
-            </Button>
+              </Button>
+              <input 
+                id="import-theme" 
+                type="file" 
+                accept=".json" 
+                className="hidden" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setImportFile(e.target.files[0]);
+                  }
+                }} 
+              />
+            </div>
             {importFile && (
               <Button variant="secondary" size="sm" onClick={handleImport}>
                 Apply Import
               </Button>
             )}
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeTheme))}`}
-                download={`${activeTheme.name}.json`}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" /> Export
-              </a>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                const element = document.createElement('a');
+                element.setAttribute('href', `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeTheme))}`);
+                element.setAttribute('download', `${activeTheme.name}.json`);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+              }}
+            >
+              <Download className="h-4 w-4" /> Export
             </Button>
           </div>
         </div>
