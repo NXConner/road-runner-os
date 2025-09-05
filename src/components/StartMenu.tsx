@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -22,13 +22,23 @@ interface StartMenuProps {
 export const StartMenu = ({ onClose, onOpenApp }: StartMenuProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Only include apps that are supported by the Window registry and Taskbar quick launch
   const apps: StartMenuApp[] = [
     { id: 'explorer', name: 'File Explorer', icon: Folder, category: 'System', kind: 'file-explorer' as const },
     { id: 'terminal', name: 'Terminal', icon: Terminal, category: 'System', kind: 'terminal' as const },
     { id: 'settings', name: 'Settings', icon: Settings, category: 'System', kind: 'settings' as const },
-    { id: 'calculator', name: 'Calculator', icon: Calculator, category: 'Utilities', kind: 'settings' as const },
-    { id: 'calendar', name: 'Calendar', icon: Calendar, category: 'Productivity', kind: 'settings' as const },
   ];
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const filteredApps = apps.filter(app =>
     app.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -47,12 +57,12 @@ export const StartMenu = ({ onClose, onOpenApp }: StartMenuProps) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-40" 
+        className="fixed inset-0 z-60" 
         onClick={onClose}
       />
       
       {/* Start Menu */}
-      <div className="fixed bottom-16 left-4 w-80 h-96 glass rounded-lg border border-border/20 z-50 overflow-hidden">
+      <div className="fixed bottom-16 left-4 w-80 h-96 glass rounded-lg border border-border/20 z-70 overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-border/20">
           <div className="flex items-center gap-3 mb-3">
